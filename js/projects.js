@@ -94,6 +94,7 @@
   function init() {
     if (!$('newDlg')) return;
     $('btnNew').onclick = openDialog;
+    if ($('btnNewTop')) $('btnNewTop').onclick = openDialog;
     $('npCancel').addEventListener('click', () => $('newDlg').close());
     $('npCreate').addEventListener('click', () => {
       const cur = !isEmpty(MS.Store.song), discard = $('npDiscard').checked;

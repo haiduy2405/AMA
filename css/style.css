@@ -660,3 +660,15 @@ html { -webkit-text-size-adjust: 100%; text-size-adjust: 100%; }
 .roll-empty::before { content: ""; display: block; width: 96px; height: 96px; margin: 0 auto 8px; border-radius: 24px; background: url(../assets/mic.webp) center/cover; box-shadow: 0 10px 30px rgba(168,85,247,.45); animation: pulse 3s ease-in-out infinite; }
 .phone .roll-empty::before { width: 64px; height: 64px; border-radius: 16px; }
 @media (prefers-reduced-motion: reduce) { .splash-bg, .roll-empty::before { animation: none; } }
+
+
+/* nút "＋ Mới" ở thanh tên bài: chỉ hiện trên điện thoại/màn hẹp (máy tính đã có "＋ Bài mới") */
+.btn-new-top { display: none; flex: none; white-space: nowrap; padding: 0 12px; font-weight: 800; }
+@media (max-width: 1020px) { .btn-new-top { display: inline-flex; } }
+
+/* màn mở app: bỏ animation nền/filter gây nháy; chỉ giữ transform trên lớp riêng */
+.splash-bg { animation: none !important; transform: translateZ(0); will-change: auto; opacity: 0; animation: bgin .5s ease .05s forwards !important; }
+@keyframes bgin { to { opacity: 1; } }
+.splash-logo { animation: none; }
+.splash.ready .splash-tap { animation: none; opacity: 1; }
+.splash-load i { transition: width .25s ease; }

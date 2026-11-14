@@ -4,6 +4,13 @@
   const MS = (globalThis.MS = globalThis.MS || {});
   MS.CHANGELOG = [
     {
+      v: '0.2.2', date: '14/11/2026', title: 'Hết nháy màn mở app & nút Bài mới',
+      items: [
+        'Sửa nháy ở màn hình mở app: ảnh nền được nạp trước và hiện mượt, bỏ các hiệu ứng gây giật.',
+        'Nút “＋ Mới” ngay cạnh tên bài trên điện thoại: bấm để lưu bài đang làm và bắt đầu bài mới (trước đó nút nằm sâu trong Cài đặt).',
+      ],
+    },
+    {
       v: '0.2.1', date: '14/11/2026', title: 'Giao diện có ảnh minh hoạ',
       items: [
         'Màn mở app có nền sóng nhạc neon tím–vàng (ảnh dọc cho điện thoại, ảnh ngang cho máy tính), chuyển động nhẹ.',
