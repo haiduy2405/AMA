@@ -1,0 +1,284 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Muse Studio — Xưởng sáng tác nhạc</title>
+<meta name="description" content="Webapp sáng tác nhạc: sinh melody đồng sáng tác, hợp âm, lời bài hát, kết nối MIDI keyboard.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="css/style.css">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Cdefs%3E%3ClinearGradient id='g' x1='0' y1='0' x2='1' y2='1'%3E%3Cstop offset='0' stop-color='%2322d3ee'/%3E%3Cstop offset='1' stop-color='%23a855f7'/%3E%3C/linearGradient%3E%3C/defs%3E%3Crect width='64' height='64' rx='16' fill='url(%23g)'/%3E%3Cpath d='M26 44V20l18-4v22' stroke='white' stroke-width='4' fill='none' stroke-linecap='round'/%3E%3Ccircle cx='22' cy='44' r='5' fill='white'/%3E%3Ccircle cx='40' cy='38' r='5' fill='white'/%3E%3C/svg%3E">
+</head>
+<body>
+<div class="bg" aria-hidden="true"><i class="orb o1"></i><i class="orb o2"></i><i class="orb o3"></i></div>
+
+<div class="app">
+  <!-- ============ THANH TRÊN ============ -->
+  <header class="topbar glass">
+    <div class="brand">
+      <svg class="logo" viewBox="0 0 64 64" width="38" height="38" aria-hidden="true"><defs><linearGradient id="lg" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#22d3ee"/><stop offset="1" stop-color="#a855f7"/></linearGradient></defs><rect width="64" height="64" rx="17" fill="url(#lg)"/><path d="M26 44V20l18-4v22" stroke="#fff" stroke-width="4" fill="none" stroke-linecap="round"/><circle cx="22" cy="44" r="5.5" fill="#fff"/><circle cx="40" cy="38" r="5.5" fill="#fff"/></svg>
+      <div class="brand-text"><b class="shimmer">Muse Studio</b><small>Xưởng sáng tác</small></div>
+    </div>
+
+    <input id="title" class="field title-field" type="text" value="Bài hát mới" maxlength="60" aria-label="Tên bài hát" spellcheck="false">
+
+    <div class="group" role="group" aria-label="Giọng và tempo">
+      <label class="mini">Giọng
+        <span class="stepper">
+          <button class="btn tiny" id="keyDown" title="Hạ 1 cung (dịch cả bài)">♭</button>
+          <select id="key" class="field"></select>
+          <button class="btn tiny" id="keyUp" title="Tăng 1 cung (dịch cả bài)">♯</button>
+        </span>
+      </label>
+      <select id="mode" class="field" aria-label="Trưởng/Thứ"><option value="major">Trưởng</option><option value="minor">Thứ</option></select>
+      <label class="mini">BPM
+        <span class="stepper">
+          <button class="btn tiny" id="bpmDown">−</button>
+          <input id="bpm" class="field num" type="number" min="30" max="240" value="90">
+          <button class="btn tiny" id="bpmUp">+</button>
+        </span>
+      </label>
+      <label class="mini">Ô nhịp
+        <span class="stepper">
+          <button class="btn tiny" id="barsDown">−</button>
+          <input id="bars" class="field num" type="number" min="1" max="128" value="8">
+          <button class="btn tiny" id="barsUp">+</button>
+        </span>
+      </label>
+    </div>
+
+    <div class="group transport" role="group" aria-label="Phát nhạc">
+      <button class="btn icon" id="btnStart" title="Về đầu (Home)"><svg viewBox="0 0 24 24"><path d="M6 5h2v14H6zM20 5v14L9 12z"/></svg></button>
+      <button class="btn icon primary big" id="btnPlay" title="Phát / Tạm dừng (Space)"><svg class="i-play" viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg><svg class="i-pause" viewBox="0 0 24 24"><path d="M7 5h4v14H7zM13 5h4v14h-4z"/></svg></button>
+      <button class="btn icon" id="btnStop" title="Dừng"><svg viewBox="0 0 24 24"><path d="M7 7h10v10H7z"/></svg></button>
+      <button class="btn icon rec" id="btnRec" title="Thu âm vào piano roll (R)"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="6"/></svg></button>
+      <button class="btn icon toggle" id="btnLoop" title="Lặp vùng (B) — Shift+kéo trên thước để chọn vùng"><svg viewBox="0 0 24 24"><path d="M7 7h9l-2-2 1.4-1.4L20 8l-4.6 4.4L14 11l2-2H7v3H5V7zm10 10H8l2 2-1.4 1.4L4 16l4.6-4.4L10 13l-2 2h9v-3h2v5z"/></svg></button>
+      <button class="btn icon toggle" id="btnMetro" title="Metronome (M)"><svg viewBox="0 0 24 24"><path d="M9 3h6l3 18H6L9 3zm2.2 2L9.5 15h5L12.8 5h-1.6zM12 8l5-4 1 1.2-5 4z"/></svg></button>
+      <button class="btn icon toggle" id="btnDrums" title="Trống nhẹ"><svg viewBox="0 0 24 24"><path d="M4 10c0-2 3.6-3 8-3s8 1 8 3v6c0 2-3.6 3-8 3s-8-1-8-3v-6zm8-1c-3.3 0-6 .7-6 1s2.7 1 6 1 6-.7 6-1-2.7-1-6-1zM3 3l5 4-.8 1L2.3 4z"/></svg></button>
+      <div class="meter" id="meter" aria-hidden="true"></div>
+    </div>
+
+    <div class="group files">
+      <button class="btn ghost" id="btnDemo" title="Nạp bài mẫu">Bài mẫu</button>
+      <button class="btn ghost" id="btnNew" title="Bài mới">Mới</button>
+      <button class="btn ghost" id="btnSave" title="Lưu .json">Lưu</button>
+      <button class="btn ghost" id="btnOpen" title="Mở .json">Mở</button>
+      <input id="fileOpen" type="file" accept=".json,application/json" hidden>
+      <button class="btn cyan" id="btnMid" title="Xuất file MIDI cho DAW">.mid</button>
+      <button class="btn ghost" id="btnTxt" title="Xuất bản chép hợp âm + lời">.txt</button>
+      <button class="btn icon ghost" id="btnHelp" title="Phím tắt (?)">?</button>
+    </div>
+  </header>
+
+  <!-- ============ NỘI DUNG ============ -->
+  <main class="layout">
+    <!-- ---- TRÁI: hợp âm ---- -->
+    <aside class="side left glass" aria-label="Hợp âm và âm thanh">
+      <section>
+        <h3>Hợp âm theo giọng</h3>
+        <div id="chordPalette" class="palette"></div>
+        <div id="chordMods" class="chips">
+          <button class="chip on" data-mod="">Tam âm</button>
+          <button class="chip" data-mod="seventh">7th</button>
+          <button class="chip" data-mod="sus4">sus4</button>
+          <button class="chip" data-mod="sus2">sus2</button>
+          <button class="chip" data-mod="add9">add9</button>
+          <button class="chip" data-mod="6">6</button>
+        </div>
+        <p id="armedHint" class="hint">Bấm một hợp âm rồi bấm vào <b>làn Hợp âm</b> để đặt. Phím <kbd>1</kbd>–<kbd>7</kbd> đặt nhanh tại ô nhịp con trỏ.</p>
+        <div id="chordInspector" class="inspector" hidden>
+          <div class="row"><b id="chInfo">Hợp âm</b><button class="btn tiny danger" id="chDelete" title="Xoá hợp âm">Xoá</button></div>
+          <div class="row">
+            <select id="chRoot" class="field"></select>
+            <select id="chQual" class="field"></select>
+            <button class="btn tiny" id="chPlay" title="Nghe">▶</button>
+          </div>
+        </div>
+      </section>
+
+      <section>
+        <h3>Tiến trình gợi ý</h3>
+        <div id="progList" class="proglist"></div>
+        <label class="check"><input type="checkbox" id="progRepeat" checked><span>Lặp đến hết bài</span></label>
+        <button class="btn block gold" id="btnHarmonize" title="Chọn hợp âm hợp với melody hiện có">🎼 Gợi ý hợp âm cho melody</button>
+      </section>
+
+      <section>
+        <h3>Âm thanh</h3>
+        <label class="row-l">Melody <select id="instMelody" class="field"></select></label>
+        <input id="volMelody" type="range" min="0" max="1" step="0.01" value="0.9" aria-label="Âm lượng melody">
+        <label class="row-l">Hợp âm <select id="instChord" class="field"></select></label>
+        <input id="volChord" type="range" min="0" max="1" step="0.01" value="0.6" aria-label="Âm lượng hợp âm">
+        <label class="row-l">Kiểu đệm <select id="chordStyle" class="field"><option value="arp">Rải (arpeggio)</option><option value="block">Bấm cùng lúc</option></select></label>
+        <label class="check"><input type="checkbox" id="muteMelody"><span>Tắt melody</span></label>
+        <label class="check"><input type="checkbox" id="muteChord"><span>Tắt hợp âm</span></label>
+      </section>
+    </aside>
+
+    <!-- ---- GIỮA: piano roll ---- -->
+    <section class="center">
+      <div class="rollbar glass">
+        <div class="seg" role="group" aria-label="Công cụ">
+          <button class="btn seg-b on" id="toolDraw" title="Vẽ / di chuyển nốt">✎ Vẽ</button>
+          <button class="btn seg-b" id="toolSelect" title="Chọn vùng (hoặc giữ Shift khi kéo)">▭ Chọn</button>
+          <button class="btn seg-b" id="toolErase" title="Xoá nốt (hoặc chuột phải)">⌫ Xoá</button>
+        </div>
+        <label class="mini">Lưới <select id="snap" class="field"><option value="1">1/16</option><option value="2">1/8</option><option value="4">1/4</option><option value="8">1/2</option><option value="16">1 ô</option></select></label>
+        <label class="mini">Độ dài nốt <select id="noteLen" class="field"><option value="1">1/16</option><option value="2" selected>1/8</option><option value="3">1/8 chấm</option><option value="4">1/4</option><option value="6">1/4 chấm</option><option value="8">1/2</option><option value="16">1 ô</option></select></label>
+        <div class="group-sm">
+          <button class="btn tiny" id="zoomOutX" title="Thu nhỏ ngang (Ctrl+lăn)">↔−</button>
+          <button class="btn tiny" id="zoomInX" title="Phóng to ngang">↔+</button>
+          <button class="btn tiny" id="zoomOutY" title="Thu nhỏ dọc (Alt+lăn)">↕−</button>
+          <button class="btn tiny" id="zoomInY" title="Phóng to dọc">↕+</button>
+        </div>
+        <div class="group-sm selactions">
+          <span class="mini" id="selInfo">Chưa chọn nốt</span>
+          <button class="btn tiny" id="trDown" title="Xuống 1 cung (↓)">−1</button>
+          <button class="btn tiny" id="trUp" title="Lên 1 cung (↑)">+1</button>
+          <button class="btn tiny" id="trOctDown" title="Xuống 1 quãng 8 (Shift+↓)">−8</button>
+          <button class="btn tiny" id="trOctUp" title="Lên 1 quãng 8 (Shift+↑)">+8</button>
+          <label class="mini vel">Lực <input id="vel" type="range" min="10" max="127" value="92" aria-label="Lực nhấn"></label>
+          <button class="btn tiny" id="btnQuant" title="Căn nốt vào lưới">Căn lưới</button>
+          <button class="btn tiny" id="btnDup" title="Nhân đôi (Ctrl+D)">Nhân đôi</button>
+          <button class="btn tiny danger" id="btnDel" title="Xoá (Delete)">Xoá</button>
+        </div>
+        <div class="group-sm">
+          <button class="btn tiny" id="btnUndo" title="Hoàn tác (Ctrl+Z)">↶</button>
+          <button class="btn tiny" id="btnRedo" title="Làm lại (Ctrl+Y)">↷</button>
+        </div>
+      </div>
+
+      <div class="roll-wrap glass" id="rollWrap">
+        <div class="roll-scroller" id="rollScroller">
+          <canvas id="rollCanvas"></canvas>
+          <div class="roll-spacer" id="rollSpacer"></div>
+        </div>
+        <input id="lyricEdit" class="lyric-edit" type="text" placeholder="Gõ lời cho ô nhịp này — Enter lưu, Tab sang ô sau" spellcheck="false" autocomplete="off">
+        <div id="countIn" class="countin" hidden>4</div>
+        <div id="rollEmpty" class="roll-empty" hidden>
+          <b>Bắt đầu từ đây</b>
+          <span>Bấm vào lưới để vẽ vài nốt, hoặc đàn bằng MIDI/bàn phím máy tính,<br>rồi bấm <em>✨ Gợi ý đoạn tiếp theo</em> ở bảng bên phải.</span>
+        </div>
+      </div>
+      <div class="statusbar" id="status">
+        <span class="chip-s" id="stCursor">Con trỏ: ô 1</span>
+        <span class="chip-s" id="stKb">⌨ Đàn bàn phím: A W S E D F T G Y H U J K · Z/X đổi quãng 8 (<b id="octLabel">C4</b>)</span>
+        <span class="chip-s" id="stDetected" hidden></span>
+        <span class="grow"></span>
+        <span class="chip-s dim">Space phát · Ctrl+Z hoàn tác · ? phím tắt</span>
+      </div>
+    </section>
+
+    <!-- ---- PHẢI: trợ lý / lời / MIDI ---- -->
+    <aside class="side right glass" aria-label="Trợ lý sáng tác">
+      <nav class="tabs" role="tablist">
+        <button class="tab on" data-tab="assist" role="tab">✨ Trợ lý</button>
+        <button class="tab" data-tab="lyrics" role="tab">📝 Lời</button>
+        <button class="tab" data-tab="midi" role="tab">🎹 MIDI</button>
+      </nav>
+
+      <!-- Trợ lý -->
+      <div class="pane on" id="pane-assist">
+        <div class="card motif" id="motifCard"></div>
+        <div class="form">
+          <div class="row-l">Độ dài câu
+            <div class="seg small" id="phraseSeg"><button class="btn seg-b" data-v="2">2 ô</button><button class="btn seg-b on" data-v="4">4 ô</button></div>
+          </div>
+          <label class="row-l">Cấu trúc
+            <select id="formSel" class="field"><option>AABA</option><option>ABAB</option><option>AABB</option><option>ABAC</option><option>AAAB</option></select>
+          </label>
+          <label class="row-l">Độ phiêu <output id="advOut">40%</output></label>
+          <input id="adv" type="range" min="0" max="100" value="40" aria-label="Độ phiêu">
+          <label class="check"><input type="checkbox" id="addChords" checked><span>Tự thêm hợp âm cho đoạn mới</span></label>
+        </div>
+        <button class="btn block primary xl" id="btnSuggest"><span>✨ Gợi ý đoạn tiếp theo</span></button>
+        <div id="candBox" class="cands" hidden>
+          <div class="cand-head"><b id="candTitle">Phương án</b><span id="candInfo" class="hint"></span></div>
+          <div id="candList"></div>
+          <div class="row"><button class="btn tiny" id="candRegen">↻ Tạo lại</button><button class="btn tiny" id="candDismiss">✕ Bỏ</button></div>
+        </div>
+        <button class="btn block ghost" id="btnAuto">⚡ Tự hoàn thiện đến hết bài</button>
+        <p class="hint">Cách dùng: vẽ/đàn một <b>motif 1–2 ô</b> → <b>Gợi ý</b> → nghe 3 phương án → <b>Chọn</b>. Lặp lại để cùng viết tiếp từng câu, hoặc để app điền hết bài. Đoạn nào cũng sửa tay được.</p>
+      </div>
+
+      <!-- Lời -->
+      <div class="pane" id="pane-lyrics">
+        <p class="hint">Mỗi hàng = một ô nhịp. <b>Số tiếng / số nốt</b> báo xanh khi khớp — mỗi tiếng tiếng Việt thường ứng với một nốt.</p>
+        <div id="lyricList" class="lyric-list"></div>
+        <details class="bulk">
+          <summary>Dán lời cả bài → chia vào ô nhịp</summary>
+          <textarea id="lyricBulk" rows="6" placeholder="Mỗi dòng lời một hàng. Dòng trống bỏ qua." spellcheck="false"></textarea>
+          <div class="row"><label class="row-l">Mỗi dòng <select id="lyricPer" class="field"><option value="1">1 ô nhịp</option><option value="2" selected>2 ô nhịp</option><option value="4">4 ô nhịp</option></select></label></div>
+          <button class="btn block cyan" id="lyricApply">Chia lời từ ô con trỏ</button>
+        </details>
+      </div>
+
+      <!-- MIDI -->
+      <div class="pane" id="pane-midi">
+        <div class="card">
+          <div class="row"><b>MIDI keyboard</b><span id="midiBadge" class="badge">Chưa kết nối</span></div>
+          <button class="btn block primary" id="midiConnect">🎹 Kết nối MIDI</button>
+          <label class="row-l">Thiết bị <select id="midiDevice" class="field"><option value="all">Tất cả thiết bị</option></select></label>
+          <p class="hint" id="midiNote">Cắm keyboard (USB/Bluetooth MIDI) rồi bấm Kết nối. Cần Chrome hoặc Edge, trang chạy HTTPS.</p>
+        </div>
+        <div class="card">
+          <b>Thu âm</b>
+          <p class="hint">Bấm ● (hoặc phím <kbd>R</kbd>), đếm 1 ô nhịp rồi đàn. Thu từ vị trí con trỏ vào melody.</p>
+          <label class="row-l">Căn nốt khi thu <select id="recQuant" class="field"><option value="1">1/16</option><option value="2">1/8</option><option value="4">1/4</option></select></label>
+          <label class="check"><input type="checkbox" id="recCount" checked><span>Đếm nhịp vào 1 ô</span></label>
+          <label class="check"><input type="checkbox" id="autoSuggest"><span>Thu xong tự gợi ý đoạn tiếp theo</span></label>
+          <button class="btn block rec-b" id="midiRec">● Thu âm</button>
+        </div>
+        <div class="card">
+          <b>Nhập từng nốt</b>
+          <label class="check"><input type="checkbox" id="stepToggle"><span>Bật: mỗi nốt bấm đặt tại con trỏ rồi nhảy tiếp</span></label>
+          <div class="row">
+            <select id="stepLen" class="field"><option value="1">1/16</option><option value="2" selected>1/8</option><option value="4">1/4</option><option value="8">1/2</option><option value="16">1 ô</option></select>
+            <button class="btn tiny" id="stepRest" title="Nghỉ: nhảy con trỏ">Nghỉ</button>
+            <button class="btn tiny" id="stepBack" title="Lùi con trỏ">← Lùi</button>
+          </div>
+        </div>
+        <div class="card">
+          <b>Nhận diện hợp âm</b>
+          <div id="detBig" class="detbig">—</div>
+          <button class="btn block gold" id="addDetected" disabled>+ Thêm vào làn hợp âm (ô con trỏ)</button>
+          <label class="check"><input type="checkbox" id="kbPiano" checked><span>Dùng bàn phím máy tính làm đàn</span></label>
+        </div>
+      </div>
+    </aside>
+  </main>
+</div>
+
+<dialog id="help" class="glass dlg">
+  <h2>Phím tắt</h2>
+  <div class="keys">
+    <div><kbd>Space</kbd> Phát / tạm dừng</div><div><kbd>Home</kbd> Về đầu</div>
+    <div><kbd>R</kbd> Thu âm</div><div><kbd>M</kbd> Metronome</div>
+    <div><kbd>B</kbd> Bật/tắt lặp</div><div><kbd>Ctrl</kbd>+<kbd>Z</kbd>/<kbd>Y</kbd> Hoàn tác / Làm lại</div>
+    <div><kbd>Ctrl</kbd>+<kbd>A</kbd> Chọn tất cả</div><div><kbd>Ctrl</kbd>+<kbd>C</kbd>/<kbd>X</kbd>/<kbd>V</kbd> Sao chép / Cắt / Dán</div>
+    <div><kbd>Ctrl</kbd>+<kbd>D</kbd> Nhân đôi</div><div><kbd>Delete</kbd> Xoá nốt/hợp âm đang chọn</div>
+    <div><kbd>←</kbd><kbd>→</kbd> Dời nốt (không chọn: dời con trỏ)</div><div><kbd>↑</kbd><kbd>↓</kbd> Lên/xuống cung (Shift = quãng 8)</div>
+    <div><kbd>1</kbd>–<kbd>7</kbd> Đặt hợp âm bậc 1–7 tại con trỏ</div><div><kbd>Esc</kbd> Bỏ chọn / thả hợp âm đang cầm</div>
+    <div><kbd>A</kbd>…<kbd>K</kbd> Đàn bằng bàn phím · <kbd>Z</kbd>/<kbd>X</kbd> đổi quãng 8</div><div>Chuột phải: xoá nốt / hợp âm</div>
+    <div>Shift + kéo trên thước: chọn vùng lặp</div><div>Ctrl + lăn: zoom ngang · Alt + lăn: zoom dọc</div>
+    <div>Nhấp đúp hợp âm: sửa trong bảng trái</div><div>Bấm ô <em>Lời</em>: gõ lời, Tab sang ô sau</div>
+  </div>
+  <form method="dialog"><button class="btn primary">Đóng</button></form>
+</dialog>
+
+<div id="toast" class="toast" role="status" aria-live="polite"></div>
+
+<script src="js/theory.js"></script>
+<script src="js/store.js"></script>
+<script src="js/uistate.js"></script>
+<script src="js/generator.js"></script>
+<script src="js/midifile.js"></script>
+<script src="js/audio.js"></script>
+<script src="js/input.js"></script>
+<script src="js/roll.js"></script>
+<script src="js/ui.js"></script>
+<script src="js/main.js"></script>
+</body>
+</html>
