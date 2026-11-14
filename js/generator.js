@@ -101,6 +101,65 @@
     return { count: s.length, bars, range: span, contour, rhythm, spanLabel: span <= 5 ? 'quãng hẹp' : span <= 9 ? 'quãng vừa' : 'quãng rộng' };
   }
 
+
+  // ---------- chấm điểm motif / câu nhạc ----------
+  // opts.phrase = true: chấm một câu đã sinh (bỏ tiêu chí độ dài motif)
+  function evaluateMotif(notes, key, mode, opts) {
+    if (!notes || !notes.length) return null;
+    const phrase = !!(opts && opts.phrase);
+    const s = [...notes].sort((a, b) => a.start - b.start || a.pitch - b.pitch);
+    const n = s.length, ps = s.map((x) => x.pitch);
+    const lo = Math.min(...ps), hi = Math.max(...ps), range = hi - lo;
+    const first = Math.floor(s[0].start / 16) * 16;
+    const end = Math.max(...s.map((x) => x.start + x.dur));
+    const bars = Math.max(1, Math.ceil((end - first) / 16));
+    const items = [];
+    let score = 0;
+    const add = (pts, max, good, text) => { score += pts; items.push({ ok: good, text, pts, max }); };
+
+    if (phrase) add(25, 25, true, 'Độ dài câu phù hợp.');
+    else if (n >= 4 && n <= 16 && bars <= 2) add(25, 25, true, 'Độ dài tốt (' + n + ' nốt, ' + bars + ' ô) — đủ ngắn để phát triển.');
+    else if (n < 4) add(6, 25, false, 'Hơi ít nốt (' + n + ') — thêm vài nốt để giai điệu rõ hơn.');
+    else if (bars > 2) add(n <= 24 ? 15 : 8, 25, false, 'Motif dài ' + bars + ' ô — 1–2 ô thường dễ phát triển nhất.');
+    else add(15, 25, false, 'Khá dày nốt (' + n + ') — bớt bớt cho dễ nhớ.');
+
+    const durs = new Set(s.map((x) => x.dur));
+    if (durs.size >= 2) add(15, 15, true, 'Nhịp có đổi độ dài nốt — tạo được điểm nhấn.');
+    else add(5, 15, false, 'Mọi nốt dài bằng nhau — thử xen một nốt dài hoặc ngắn để có điểm nhấn.');
+
+    let rep = 0, maxLeap = 0, big = 0;
+    for (let i = 1; i < n; i++) {
+      const d = Math.abs(ps[i] - ps[i - 1]);
+      if (d === 0) rep++;
+      if (d > maxLeap) maxLeap = d;
+      if (d > 7) big++;
+    }
+    const repR = n > 1 ? rep / (n - 1) : 0;
+    if (repR <= 0.4) add(10, 10, true, 'Nốt thay đổi đều, không bị lặp một cao độ.');
+    else add(3, 10, false, 'Lặp một cao độ khá nhiều (' + Math.round(repR * 100) + '%) — thêm nốt cao/thấp hơn.');
+
+    if (maxLeap <= 9 && big <= Math.max(1, Math.floor(n * 0.2))) add(15, 15, true, 'Bước nhảy vừa tầm giọng hát.');
+    else add(5, 15, false, 'Có bước nhảy lớn (' + maxLeap + ' bán cung) — khó hát; thử nối bằng nốt trung gian.');
+
+    if (range <= 12) add(15, 15, true, 'Quãng ' + range + ' bán cung — nằm gọn trong một quãng tám.');
+    else if (range <= 16) add(8, 15, false, 'Quãng khá rộng (' + range + ' bán cung) — người hát thường chỉ thoải mái trong 1 quãng tám.');
+    else add(3, 15, false, 'Quãng rất rộng (' + range + ' bán cung) — nên thu hẹp.');
+
+    const inK = ps.filter((p) => T.inScale(p, key, mode)).length / n;
+    if (inK >= 0.9) add(10, 10, true, 'Các nốt khớp giọng hiện tại.');
+    else add(Math.round(10 * Math.max(0, (inK - 0.5) * 2)), 10, false, 'Có nốt ngoài giọng (' + Math.round((1 - inK) * 100) + '%) — thử “Đoán giọng” hoặc sửa nốt lạc.');
+
+    const dg = T.pitchToDeg(s[n - 1].pitch, key, mode);
+    const stable = dg != null && [0, 2, 4].includes(((dg % 7) + 7) % 7);
+    if (stable) add(10, 10, true, 'Kết ở nốt vững — câu nghe khép lại, hợp làm câu đóng.');
+    else add(7, 10, true, 'Kết ở nốt chưa vững — hợp làm câu mở, tạo cảm giác chờ nối tiếp.');
+
+    score = Math.max(0, Math.min(100, Math.round(score)));
+    const grade = score >= 80 ? 'Rất tốt' : score >= 60 ? 'Tốt' : score >= 40 ? 'Tạm ổn' : 'Cần chỉnh';
+    const level = score >= 80 ? 'great' : score >= 60 ? 'good' : score >= 40 ? 'ok' : 'low';
+    return { score, grade, level, items, bars, count: n, range, maxLeap, closed: stable };
+  }
+
   // ---------- biến đổi ô nhịp ----------
   function shiftBar(bar, k) {
     const b = cloneBar(bar);
@@ -596,5 +655,5 @@
     return out;
   }
 
-  MS.Generator = { rng, generate, autoComplete, suggestChords, applyProgression, analyzeMotif, suggestStart, notesToBar, VARIANTS };
+  MS.Generator = { rng, generate, autoComplete, suggestChords, applyProgression, analyzeMotif, evaluateMotif, suggestStart, notesToBar, VARIANTS };
 })();

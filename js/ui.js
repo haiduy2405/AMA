@@ -175,18 +175,36 @@
   function renderMotif() {
     const song = Store.song;
     const card = $('motifCard');
+    const phone = document.body.classList.contains('phone');
     if (!song.notes.length) {
-      card.innerHTML = '<b>Khuôn nhạc</b><p class="hint">Chưa có nốt nào. Vẽ vài nốt (hoặc đàn MIDI) làm motif — hoặc bấm Gợi ý để mình mở đầu từ giọng hiện tại.</p>';
+      card.innerHTML = '<b>Khuôn nhạc</b><p class="hint">Chưa có nốt nào. ' +
+        (phone ? 'Mở piano roll, chạm vào lưới để vẽ vài nốt (hoặc bật 🎹 Phím để bấm từng nốt) làm motif 1–2 ô.'
+          : 'Đàn motif 1–2 ô bằng MIDI keyboard (nối dây USB), bàn phím máy tính, hoặc vẽ trên piano roll.') + '</p>' +
+        '<div class="row">' + (phone ? '<button class="btn tiny cyan" id="mtOpenRoll">🎹 Mở piano roll</button>' : '<button class="btn tiny cyan" id="mtMidi">🎹 Nối MIDI keyboard</button><button class="btn tiny rec-b" id="mtRec">● Thu motif</button>') +
+        '<button class="btn tiny" id="mtOpen">✨ Mở đầu giúp tôi</button></div>';
+      const g = (id, fn) => { const e = $(id); if (e) e.addEventListener('click', fn); };
+      g('mtOpenRoll', () => document.querySelector('#bottomNav [data-nav="roll"]').click());
+      g('mtMidi', () => { const t = document.querySelector('.tab[data-tab="midi"]'); if (t) t.click(); });
+      g('mtRec', toggleRecord);
+      g('mtOpen', suggest);
       return;
     }
     const motifNotes = song.notes.filter((n) => n.start < 32);
-    const a = Gen.analyzeMotif(motifNotes.length ? motifNotes : song.notes, song.key, song.mode);
+    const src = motifNotes.length ? motifNotes : song.notes;
+    const a = Gen.analyzeMotif(src, song.key, song.mode);
+    const ev = Gen.evaluateMotif(src, song.key, song.mode);
     const next = Gen.suggestStart(song);
     const end = Store.lastNoteEnd();
     card.innerHTML =
-      '<b>Khuôn nhạc của bạn</b><div class="tags"><span class="tag">' + a.count + ' nốt</span><span class="tag">' + a.contour + '</span><span class="tag">' + a.spanLabel + '</span><span class="tag">nhịp ' + a.rhythm + '</span></div>' +
+      '<div class="mt-head"><b>Khuôn nhạc của bạn</b><span class="score s-' + ev.level + '" title="Điểm motif (0–100)">' + ev.score + '</span></div>' +
+      '<div class="mt-grade s-' + ev.level + '">' + ev.grade + '</div>' +
+      '<canvas id="motifMini" width="560" height="96"></canvas>' +
+      '<ul class="evals">' + ev.items.map((i) => '<li class="' + (i.ok ? 'ok' : 'warn') + '">' + (i.ok ? '✓' : '!') + ' ' + i.text + '</li>').join('') + '</ul>' +
+      '<div class="tags"><span class="tag">' + a.count + ' nốt</span><span class="tag">' + a.contour + '</span><span class="tag">' + a.spanLabel + '</span><span class="tag">nhịp ' + a.rhythm + '</span></div>' +
       '<p class="hint">Đã viết đến ô <b>' + Math.max(1, Math.ceil(end / 16)) + '</b>/' + song.bars + '. Gợi ý kế tiếp bắt đầu ở ô <b>' + Math.min(song.bars, next / 16 + 1) + '</b>.</p>' +
-      '<div class="row"><button class="btn tiny" id="btnGuess">🔍 Đoán giọng</button></div>';
+      '<div class="row"><button class="btn tiny" id="mtPlay">▶ Nghe motif</button><button class="btn tiny" id="btnGuess">🔍 Đoán giọng</button></div>';
+    drawMini($('motifMini'), { notes: src, start: Math.floor(Math.min(...src.map((n) => n.start)) / 16) * 16, end: Math.max(...src.map((n) => n.start + n.dur)) });
+    $('mtPlay').addEventListener('click', () => { Tr.play({ from: 0, to: Math.min(Math.max(...src.map((n) => n.start + n.dur)) + 4, 64) }); });
     $('btnGuess').addEventListener('click', () => {
       const g = T.guessKey(song.notes);
       if (!g) return;
@@ -284,8 +302,11 @@
 
   function renderCands() {
     const box = $('candBox'), list = $('candList');
-    if (!S.candidates.length) { box.hidden = true; list.innerHTML = ''; return; }
+    if (!S.candidates.length) { box.hidden = true; list.innerHTML = ''; document.dispatchEvent(new CustomEvent('ms-cands')); return; }
     box.hidden = false;
+    const song = Store.song;
+    S.candidates.forEach((c) => { const e = Gen.evaluateMotif(c.notes, song.key, song.mode, { phrase: true }); c.score = e ? e.score : 0; });
+    const best = Math.max(...S.candidates.map((c) => c.score));
     const info = S.candidates[0].info;
     $('candTitle').textContent = 'Câu ' + info.phrase + ' · ' + info.label;
     $('candInfo').textContent = info.cadence;
@@ -293,7 +314,7 @@
     S.candidates.forEach((c, i) => {
       const el = document.createElement('div');
       el.className = 'cand' + (i === S.activeCand ? ' on' : '');
-      el.innerHTML = '<div class="ch"><span>' + c.name + '</span><span class="hint">' + c.notes.length + ' nốt</span></div><canvas width="560" height="108"></canvas>' +
+      el.innerHTML = '<div class="ch"><span>' + c.name + '</span><span class="hint">' + (c.score === best && S.candidates.length > 1 ? '<b class="best">★ Hay nhất</b> · ' : '') + c.score + ' điểm · ' + c.notes.length + ' nốt</span></div><canvas width="560" height="108"></canvas>' +
         '<div class="cb"><button class="btn tiny" data-a="play">▶ Nghe</button><button class="btn tiny gold" data-a="pick">✓ Chọn</button></div>';
       el.addEventListener('click', (e) => {
         const a = e.target.closest('button');
@@ -303,6 +324,7 @@
       list.appendChild(el);
       drawMini(el.querySelector('canvas'), c);
     });
+    document.dispatchEvent(new CustomEvent('ms-cands'));
   }
   function drawMini(cv, c) {
     const x = cv.getContext('2d');
@@ -887,5 +909,5 @@
     requestAnimationFrame(frame);
   }
 
-  MS.UI = { init, toast, startPlay, suggest, centerRoll };
+  MS.UI = { init, toast, startPlay, suggest, centerRoll, renderMotif, selectCand, acceptCand, dismissCands, previewCand };
 })();

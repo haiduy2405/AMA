@@ -29,5 +29,5 @@ Bộ sinh melody dựa trên luật (không phải mô hình AI): biến đổi 
 ## Phiên bản & phát hành
 - Điện thoại: màn chính là các trang Trợ lý / Hợp âm / Lời / Cài đặt; bấm **Piano roll** để mở toàn màn hình ngang (2 ngón = cuộn + zoom, công cụ ✋ Cuộn).
 - PC: giữ chuột phải xoá, nhấp đúp hợp âm, phím tắt, MIDI keyboard.
-- Mỗi lần phát hành: `node tools/bump.js 2.1.0` → commit → push. App tự phát hiện (`version.json?t=…` bỏ qua cache) và hiện màn hình **bắt buộc cập nhật**.
+- Mỗi lần phát hành: `node tools/bump.js patch` (0.1.1 → 0.1.2 → …) hoặc `minor` (→ 0.2.0) → commit → push. App tự phát hiện (`version.json?t=…` bỏ qua cache) và hiện màn hình **bắt buộc cập nhật**.
 - `.nojekyll` giúp GitHub Pages bỏ bước Jekyll nên triển khai nhanh hơn.

@@ -23,6 +23,16 @@ ok(T.vnSyllables('Chiều rơi trên phố nhỏ') === 5 && T.vnSyllables('  ') 
 const gk = T.guessKey([60, 62, 64, 65, 67, 69, 71, 72, 64, 60].map((p, i) => ({ pitch: p, start: i * 4, dur: 4 })));
 ok(gk.key === 0 && gk.mode === 'major', 'guessKey C');
 
+// --- chấm điểm motif ---
+const mk = (arr) => arr.map(([t, d, p], i) => ({ id: 'e' + i, start: t, dur: d, pitch: p, vel: 90 }));
+const good = G.evaluateMotif(mk([[0, 4, 64], [4, 2, 67], [6, 2, 69], [8, 4, 67], [12, 4, 64]]), 0, 'major');
+const bad = G.evaluateMotif(mk([[0, 2, 60], [2, 2, 60], [4, 2, 60], [6, 2, 90], [8, 2, 61]]), 0, 'major');
+ok(good.score >= 80 && good.items.length === 7, 'motif tốt điểm cao: ' + good.score);
+ok(bad.score < 55 && bad.score < good.score, 'motif xấu điểm thấp: ' + bad.score);
+ok(G.evaluateMotif([], 0, 'major') === null, 'rỗng');
+ok(G.evaluateMotif(mk([[0, 4, 60]]), 0, 'major').items[0].ok === false, 'quá ít nốt bị nhắc');
+ok(G.evaluateMotif(mk([[0, 4, 64], [4, 4, 67], [8, 8, 72]]), 0, 'major', { phrase: true }).items[0].ok, 'phrase bỏ tiêu chí dài');
+
 // --- generator ---
 function song(key, mode, bars, motif) {
   const s = MS.Store.normalize({ key, mode, bars, notes: motif || [] });

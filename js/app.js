@@ -173,13 +173,16 @@
     body.classList.add('roll-full');
     placeDock();
     lockLandscape();
+    if (!MS.Store.song.notes.length) setVkb(true);
     setTimeout(() => { if (MS.UI && MS.UI.centerRoll) MS.UI.centerRoll(); if (innerHeight > innerWidth) toast('Xoay ngang điện thoại để có chỗ soạn rộng hơn.'); }, 120);
   }
   function lockLandscape() { try { if (screen.orientation && screen.orientation.lock) screen.orientation.lock('landscape').catch(() => {}); } catch (e) { /* ok */ } }
   function lockPortrait() { try { if (isPhoneDevice && screen.orientation && screen.orientation.lock) screen.orientation.lock('portrait').catch(() => {}); } catch (e) { /* ok */ } }
   function closeRoll() {
     body.classList.remove('roll-full');
+    if (!vkb.hidden) setVkb(false);
     lockPortrait();
+    if (MS.UI.renderMotif) MS.UI.renderMotif();
     placeDock();
   }
   $('rollClose').addEventListener('click', closeRoll);
@@ -198,6 +201,7 @@
       if (c) m.to().appendChild(m.el); else m.ph.parentNode.insertBefore(m.el, m.ph.nextSibling);
     });
     placeDock();
+    try { if (MS.UI && MS.UI.renderMotif) MS.UI.renderMotif(); } catch (e) { /* chưa khởi tạo */ }
     $('navRollLbl').textContent = ph ? 'Piano roll' : 'Soạn';
     if (ph) showPage(right.classList.contains('open') || !panels.some((x) => x.classList.contains('open')) ? 'assist' : left.classList.contains('open') ? 'chords' : 'settings');
     else { panels.forEach((x) => x.classList.remove('open')); settings.hidden = true; $('sheetBack').hidden = true; }
@@ -214,6 +218,92 @@
   }, true);
   [compactMQ, phoneMQ].forEach((q) => (q.addEventListener ? q.addEventListener('change', layout) : q.addListener(layout)));
   layout();
+
+
+  // ---------- đàn ảo (nhập motif trên điện thoại) ----------
+  const S = MS.S;
+  const vkb = $('vkb');
+  let vkOct = 4;
+  const WHITE = [0, 2, 4, 5, 7, 9, 11], BLACK = [[1, 0], [3, 1], [6, 3], [8, 4], [10, 5]];
+  const NN = ['C', 'D', 'E', 'F', 'G', 'A', 'B'];
+  function buildKeys() {
+    const box = $('vkKeys'); box.innerHTML = '';
+    const base = 12 * (vkOct + 1), nW = 14;
+    for (let i = 0; i < nW; i++) {
+      const p = base + Math.floor(i / 7) * 12 + WHITE[i % 7];
+      const k = document.createElement('button');
+      k.className = 'vk w' + (i % 7 === 0 ? ' c' : ''); k.dataset.p = p; k.setAttribute('aria-label', NN[i % 7] + (vkOct + Math.floor(i / 7)));
+      k.innerHTML = i % 7 === 0 ? '<i>C' + (vkOct + Math.floor(i / 7)) + '</i>' : '';
+      box.appendChild(k);
+    }
+    for (let o = 0; o < 2; o++) BLACK.forEach(([semi, wi]) => {
+      const k = document.createElement('button');
+      k.className = 'vk b'; k.dataset.p = base + o * 12 + semi; k.setAttribute('aria-label', 'nốt thăng');
+      k.style.left = ((o * 7 + wi + 1) / nW * 100) + '%';
+      box.appendChild(k);
+    });
+    $('vkOct').textContent = 'C' + vkOct + '–B' + (vkOct + 1);
+  }
+  const down = new Map();
+  $('vkKeys').addEventListener('pointerdown', (e) => {
+    const k = e.target.closest('.vk'); if (!k) return;
+    e.preventDefault();
+    try { k.setPointerCapture(e.pointerId); } catch (er) { /* ok */ }
+    const p = +k.dataset.p; down.set(e.pointerId, p); k.classList.add('down');
+    MS.Input.noteOn(p, 92);
+  });
+  const up = (e) => {
+    const p = down.get(e.pointerId); if (p == null) return;
+    down.delete(e.pointerId); MS.Input.noteOff(p);
+    const k = $('vkKeys').querySelector('.vk[data-p="' + p + '"]'); if (k) k.classList.remove('down');
+  };
+  $('vkKeys').addEventListener('pointerup', up);
+  $('vkKeys').addEventListener('pointercancel', up);
+  $('vkOctDn').addEventListener('click', () => { vkOct = Math.max(1, vkOct - 1); buildKeys(); });
+  $('vkOctUp').addEventListener('click', () => { vkOct = Math.min(6, vkOct + 1); buildKeys(); });
+  function setStep(on) { S.stepInput = on; $('vkStep').checked = on; const t = $('stepToggle'); if (t) t.checked = on; }
+  $('vkStep').addEventListener('change', (e) => setStep(e.target.checked));
+  $('vkLen').addEventListener('change', (e) => { S.stepLen = +e.target.value; const l = $('stepLen'); if (l) l.value = e.target.value; });
+  $('vkRest').addEventListener('click', () => MS.Input.stepRest());
+  $('vkBack').addEventListener('click', () => MS.Input.stepBack());
+  function setVkb(on) {
+    vkb.hidden = !on; body.classList.toggle('vkb-on', on);
+    $('btnVkb').classList.toggle('on', on);
+    if (on) {
+      buildKeys(); setStep(true);
+      S.stepLen = +$('vkLen').value;
+      const end = MS.Store.lastNoteEnd();
+      if (end > 0) S.cursor = Math.min(MS.Store.totalSteps(), end);
+      if (MS.UI.centerRoll) setTimeout(MS.UI.centerRoll, 60);
+    } else setStep(false);
+  }
+  $('btnVkb').addEventListener('click', () => setVkb(vkb.hidden));
+  $('btnSuggestRoll').addEventListener('click', () => {
+    if (!MS.Store.song.notes.length) { toast('Vẽ hoặc bấm vài nốt làm motif trước, rồi bấm Gợi ý.'); return; }
+    MS.UI.suggest();
+  });
+
+  // ---------- thanh chọn phương án (trong piano roll toàn màn hình) ----------
+  const candBar = $('candBar');
+  function renderCandBar() {
+    const c = S.candidates || [];
+    if (!c.length) { candBar.hidden = true; return; }
+    const i = S.activeCand < 0 ? 0 : S.activeCand;
+    candBar.hidden = false;
+    candBar.innerHTML = '<button class="btn tiny" data-a="prev" aria-label="Phương án trước">‹</button><span class="cb-name">' + c[i].name + ' · ★' + (c[i].score || 0) + ' <small>(' + (i + 1) + '/' + c.length + ')</small></span><button class="btn tiny" data-a="next" aria-label="Phương án sau">›</button>' +
+      '<button class="btn tiny" data-a="play">▶</button><button class="btn tiny gold" data-a="pick">✓ Chọn</button><button class="btn tiny" data-a="no" aria-label="Bỏ">✕</button>';
+  }
+  candBar.addEventListener('click', (e) => {
+    const b = e.target.closest('button'); if (!b) return;
+    const n = S.candidates.length, i = S.activeCand < 0 ? 0 : S.activeCand;
+    const a = b.dataset.a;
+    if (a === 'prev') MS.UI.selectCand((i + n - 1) % n);
+    else if (a === 'next') MS.UI.selectCand((i + 1) % n);
+    else if (a === 'play') MS.UI.previewCand(i);
+    else if (a === 'pick') MS.UI.acceptCand(i);
+    else if (a === 'no') MS.UI.dismissCands();
+  });
+  document.addEventListener('ms-cands', renderCandBar);
 
   // ---------- kiểu app trên cảm ứng ----------
   const allowSel = (t) => t && t.closest && t.closest('input, textarea, select, [contenteditable]');

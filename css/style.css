@@ -436,3 +436,48 @@ body.phone.roll-full #rollClose { min-width: 38px; width: 38px; height: 38px; mi
   .toast { bottom: calc(var(--nav-h, 58px) + env(safe-area-inset-bottom, 0px) + 22px); max-width: calc(100vw - 24px); font-size: 13px; }
 }
 body.roll-full .toast { bottom: max(14px, env(safe-area-inset-bottom)); }
+
+/* ================= chấm điểm motif, đàn ảo, thanh phương án ================= */
+.phone-only { display: none; }
+body.phone.roll-full .phone-only { display: inline-flex; }
+.mt-head { display: flex; align-items: center; justify-content: space-between; }
+.score { min-width: 46px; text-align: center; padding: 3px 10px; border-radius: 999px; font-weight: 800; font-size: 18px; color: #06231a; background: var(--green); box-shadow: 0 0 18px rgba(110,231,183,.45); }
+.score.s-good { background: #a3e635; box-shadow: 0 0 18px rgba(163,230,53,.4); }
+.score.s-ok { background: var(--gold); box-shadow: 0 0 18px rgba(251,191,36,.4); }
+.score.s-low { background: var(--red); color: #2a0610; box-shadow: 0 0 18px rgba(251,113,133,.4); }
+.mt-grade { font-size: 12px; font-weight: 700; margin: 2px 0 6px; color: var(--green); }
+.mt-grade.s-good { color: #bef264; } .mt-grade.s-ok { color: var(--gold); } .mt-grade.s-low { color: var(--red); }
+#motifMini { width: 100%; height: 48px; display: block; border-radius: 8px; background: rgba(255,255,255,.05); margin: 4px 0 6px; }
+.evals { list-style: none; margin: 4px 0 6px; padding: 0; font-size: 12px; display: grid; gap: 3px; }
+.evals li { padding-left: 2px; color: var(--muted); }
+.evals li.ok { color: #b8f5dc; }
+.evals li.warn { color: #fcd9a0; }
+.cand .best { color: var(--gold); }
+
+.vkb { display: none; }
+body.phone.roll-full.vkb-on .vkb { display: block; }
+body.phone.roll-full .center .vkb { grid-column: 1 / -1; padding: 4px 6px 6px; }
+.vkb-bar { display: flex; align-items: center; gap: 6px; overflow-x: auto; scrollbar-width: none; padding-bottom: 4px; }
+.vkb-bar > * { flex: none; }
+.vkb-bar b { font-size: 12px; min-width: 56px; text-align: center; }
+.vkb-sep { width: 1px; height: 22px; background: var(--line); }
+.vk-step { display: flex; align-items: center; gap: 5px; font-size: 12px; white-space: nowrap; }
+.vkb-keys { position: relative; display: flex; height: clamp(58px, 21dvh, 110px); touch-action: none; }
+.vk { border: 0; padding: 0; cursor: pointer; touch-action: none; }
+.vk.w { flex: 1; position: relative; background: linear-gradient(180deg, #f4f1ff, #cfc8ee); border-radius: 0 0 8px 8px; border-right: 1px solid rgba(20,10,60,.35); color: #2a1a66; display: flex; align-items: flex-end; justify-content: center; }
+.vk.w i { font-style: normal; font-size: 10px; font-weight: 700; padding-bottom: 4px; }
+.vk.b { position: absolute; top: 0; width: 6%; height: 62%; transform: translateX(-50%); background: linear-gradient(180deg, #2b1c68, #0d0630); border-radius: 0 0 6px 6px; z-index: 2; box-shadow: 0 3px 6px rgba(0,0,0,.6); }
+.vk.down.w { background: linear-gradient(180deg, #67e8f9, #22d3ee); }
+.vk.down.b { background: linear-gradient(180deg, #8b5cf6, #5b3fd6); }
+
+.cand-bar { position: absolute; left: 50%; bottom: 8px; transform: translateX(-50%); z-index: 5; display: flex; align-items: center; gap: 6px; padding: 5px 8px; border-radius: 16px; background: linear-gradient(160deg, rgba(40,24,100,.96), rgba(16,9,52,.97)); box-shadow: 0 10px 30px rgba(0,0,0,.6); max-width: calc(100% - 16px); }
+.cand-bar[hidden] { display: none; }
+.cb-name { font-size: 12px; font-weight: 700; white-space: nowrap; }
+.cb-name small { color: var(--muted); }
+body:not(.phone) .cand-bar { display: none !important; }
+@media (max-height: 460px) {
+  body.phone.roll-full .vkb-bar .btn.tiny { min-height: 30px; height: 30px; padding: 0 10px; }
+  body.phone.roll-full .vkb-bar .field { min-height: 30px; height: 30px; }
+  body.phone.roll-full .center .vkb { padding-top: 2px; }
+  .cand-bar { bottom: auto; top: 6px; }
+}
