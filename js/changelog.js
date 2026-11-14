@@ -4,6 +4,18 @@
   const MS = (globalThis.MS = globalThis.MS || {});
   MS.CHANGELOG = [
     {
+      v: '0.2.0', date: '14/11/2026', title: 'Mượt trên iPhone, Android và máy tính',
+      items: [
+        'Phông chữ được đóng gói sẵn trong app: mở nhanh hơn, chạy offline, không còn nháy chữ.',
+        'iPhone/iPad: tiếng vẫn phát khi gạt công tắc im lặng, tự nối lại khi quay lại app; không còn bị phóng to khi chạm ô nhập chữ.',
+        'Nút Back (Android) và vuốt lùi (iPhone) chỉ đóng piano roll hoặc bảng hát, không thoát app.',
+        'Bài hát được lưu ngay khi app ra nền hoặc bị hệ thống tắt; xin chế độ lưu trữ bền cho trình duyệt.',
+        'Nhẹ hơn trên máy yếu: giảm hiệu ứng kính mờ trên điện thoại, tôn trọng chế độ “giảm chuyển động”.',
+        'Giải thích rõ MIDI keyboard dùng được ở đâu (PC, Android) và gợi ý đàn ảo/hát trên iPhone.',
+        'PC: thư mục dự án có Mo-app.bat (chạy offline) và Cap-nhat.bat (kéo bản mới từ GitHub).',
+      ],
+    },
+    {
       v: '0.1.4', date: '14/11/2026', title: 'Bài mới & đoạn hát hiện ở màn chính',
       items: [
         '＋ Bài mới: đặt tên, giọng, nhịp độ, số ô rồi bắt đầu; bài cũ tự lưu vào “Bài gần đây” để mở lại, hoặc chọn xoá hẳn (Ctrl+Z vẫn lấy lại được).',

@@ -447,7 +447,7 @@
     const map = {
       idle: ['Chưa kết nối', '', 'Cắm keyboard (USB/Bluetooth MIDI) rồi bấm Kết nối. Cần Chrome hoặc Edge, trang chạy HTTPS.'],
       connecting: ['Đang kết nối…', '', 'Trình duyệt có thể hỏi quyền dùng thiết bị MIDI — bấm Cho phép.'],
-      unsupported: ['Không hỗ trợ', 'bad', 'Trình duyệt này chưa hỗ trợ Web MIDI. Dùng Chrome/Edge — hoặc đàn bằng bàn phím máy tính (A W S E D F…).'],
+      unsupported: ['Không hỗ trợ', 'bad', (/iphone|ipad|ipod/i.test(navigator.userAgent) || (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1) ? 'iPhone/iPad (Safari) chưa hỗ trợ MIDI keyboard. Hãy dùng đàn ảo trong piano roll, hát vào micro, hoặc vẽ nốt. MIDI chạy tốt trên máy tính (Chrome/Edge) và điện thoại Android (Chrome).' : 'Trình duyệt này chưa hỗ trợ Web MIDI. Dùng Chrome/Edge — hoặc đàn bằng bàn phím máy tính (A W S E D F…).')],
       denied: ['Bị từ chối', 'bad', 'Quyền MIDI đã bị chặn. Bấm biểu tượng ổ khoá trên thanh địa chỉ → cho phép “Thiết bị MIDI”, rồi tải lại trang.'],
       nodevice: ['Chưa thấy thiết bị', 'bad', 'Đã có quyền MIDI nhưng chưa thấy keyboard. Cắm USB hoặc ghép Bluetooth MIDI — app tự nhận ngay khi cắm.'],
       ready: ['Đã kết nối · ' + M.inputs.length + ' thiết bị', 'ok', M.inputs.map((i) => '• ' + (i.name || 'MIDI')).join('\n')],

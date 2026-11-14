@@ -41,3 +41,18 @@ Bộ sinh melody dựa trên luật (không phải mô hình AI): biến đổi 
 ## v0.1.3 — Hát để tạo melody & Piano roll Pro
 - 🎤 **Hát → melody** (`js/voice.js`): micro → dò cao độ YIN → tách nốt → căn nhịp (1/16, 1/8, 1/4) → chèn tại con trỏ. Cần HTTPS hoặc localhost để dùng micro.
 - **Piano roll Pro**: làn lực nhấn, khoá thang âm, Legato, Chia đôi, Đảo ngược, Ép thang, Tự nhiên, Lặp vùng, Vừa khung (thanh `#proBar`).
+
+
+## Thư mục dự án & sao lưu
+- **Gốc offline trên PC:** `D:\MusicAi` (bản clone của repo GitHub `haiduy2405/ama`). **Online:** GitHub → https://haiduy2405.github.io/AMA/
+- `Mo-app.bat` — chạy app offline ngay trên PC (cần Node.js; mở `http://localhost:8080`). Micro/MIDI chỉ chạy trên localhost/HTTPS nên đừng mở thẳng file `index.html`.
+- `Cap-nhat.bat` — kéo bản mới nhất từ GitHub về `D:\MusicAi`.
+- `assets-src/` — ảnh gốc (PNG lớn, nguồn ChatGPT…), **không** đẩy lên GitHub; chỉ bản đã nén vào `assets/`.
+- Sao lưu bài hát: nút **Lưu** → file `.muse.json` (giữ ở `D:\MusicAi\Bai-hat`). Bài trong trình duyệt còn nằm ở “Bài gần đây”.
+
+## Tương thích
+| Nền tảng | Trạng thái |
+|---|---|
+| PC (Chrome/Edge) | Đầy đủ: MIDI keyboard, phím tắt, chuột phải |
+| Android (Chrome) | Đầy đủ, cài PWA, MIDI USB/Bluetooth, nút Back đóng piano roll |
+| iPhone/iPad (Safari) | Hát/vẽ/đàn ảo, cài “Thêm vào MH chính”; **không có Web MIDI** (giới hạn của Safari) |

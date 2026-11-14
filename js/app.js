@@ -207,8 +207,11 @@
     setNav(name);
   }
   // ----- piano roll toàn màn hình ngang (điện thoại) -----
+  // nút Back của Android / vuốt lùi của iOS chỉ đóng piano roll, không thoát app
+  let rollPushed = false;
   function openRoll() {
     body.classList.add('roll-full');
+    if (!rollPushed) { try { history.pushState({ ms: 'roll' }, ''); rollPushed = true; } catch (e) { /* ok */ } }
     placeDock();
     lockLandscape();
     if (!MS.Store.song.notes.length) setVkb(true);
@@ -216,14 +219,25 @@
   }
   function lockLandscape() { try { if (screen.orientation && screen.orientation.lock) screen.orientation.lock('landscape').catch(() => {}); } catch (e) { /* ok */ } }
   function lockPortrait() { try { if (isPhoneDevice && screen.orientation && screen.orientation.lock) screen.orientation.lock('portrait').catch(() => {}); } catch (e) { /* ok */ } }
-  function closeRoll() {
+  function closeRoll(fromPop) {
     body.classList.remove('roll-full');
+    if (rollPushed) { rollPushed = false; if (fromPop !== true && history.state && history.state.ms === 'roll') history.back(); }
     if (!vkb.hidden) setVkb(false);
     lockPortrait();
     if (MS.UI.renderMotif) MS.UI.renderMotif();
     placeDock();
   }
-  $('rollClose').addEventListener('click', closeRoll);
+  $('rollClose').addEventListener('click', () => closeRoll());
+  addEventListener('popstate', () => { if (rollPushed && body.classList.contains('roll-full')) closeRoll(true); });
+
+  // an toàn dữ liệu: iOS có thể tắt trang nền bất cứ lúc nào → lưu ngay khi rời/ẩn trang, xin lưu trữ bền
+  const flush = () => { try { MS.Store.saveNow(); } catch (e) { /* ok */ } };
+  addEventListener('pagehide', flush);
+  document.addEventListener('visibilitychange', () => { if (document.hidden) flush(); });
+  document.addEventListener('pointerdown', function once() {
+    document.removeEventListener('pointerdown', once, true);
+    try { if (navigator.storage && navigator.storage.persist) navigator.storage.persist(); } catch (e) { /* ok */ }
+  }, true);
   let rzT; addEventListener('resize', () => { if (!body.classList.contains('roll-full')) return; clearTimeout(rzT); rzT = setTimeout(() => MS.UI.centerRoll && MS.UI.centerRoll(), 250); });
   document.addEventListener('keydown', (e) => { if (e.key === 'Escape' && body.classList.contains('roll-full')) closeRoll(); });
 

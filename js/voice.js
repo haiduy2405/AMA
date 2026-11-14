@@ -159,6 +159,7 @@
     if (MS.Input && MS.Input.recState !== 'idle') MS.Input.stopRecord();
     $('voicePanel').hidden = false;
     document.body.classList.add('voice-on');
+    if (!st.pushed) { try { history.pushState({ ms: 'voice' }, ''); st.pushed = true; } catch (e) { /* ok */ } }
     st.ids = null;
     setState('idle');
     $('vpNote').textContent = '–';
@@ -167,13 +168,15 @@
     msg('Đeo tai nghe để tiếng đếm nhịp không lọt vào micro. Bấm <b>Bắt đầu hát</b>, đếm 4 nhịp rồi hát một câu (la la la… hoặc cả lời).');
     drawTrace();
   }
-  function close() {
+  function close(fromPop) {
     cleanup();
+    if (st.pushed) { st.pushed = false; if (fromPop !== true && history.state && history.state.ms === 'voice') history.back(); }
     $('voicePanel').hidden = true;
     document.body.classList.remove('voice-on');
     st.state = 'idle';
   }
   function cleanup() {
+    if (MS.Audio && MS.Audio.session) MS.Audio.session('playback');
     clearInterval(st.timer); st.timer = null;
     if (st.stream) st.stream.getTracks().forEach((t) => t.stop());
     st.stream = null;
@@ -196,6 +199,7 @@
       msg('Không mở được micro. Hãy cho phép quyền micro cho trang này (biểu tượng ổ khoá cạnh địa chỉ) rồi thử lại.');
       return;
     }
+    if (MS.Audio && MS.Audio.session) MS.Audio.session('play-and-record');
     const AC = G.AudioContext || G.webkitAudioContext;
     st.ctx = new AC();
     try { await st.ctx.resume(); } catch (e) { /* ok */ }
@@ -350,7 +354,8 @@
   function init() {
     if (!$('voicePanel')) return;
     $('btnVoice').addEventListener('click', open);
-    $('vpClose').addEventListener('click', close);
+    $('vpClose').addEventListener('click', () => close());
+    addEventListener('popstate', () => { if (st.pushed && !$('voicePanel').hidden) close(true); });
     $('vpEdit').addEventListener('click', () => { showMelody(); close(); });
     $('vpGo').addEventListener('click', () => {
       if (st.state === 'rec') stop();

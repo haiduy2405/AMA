@@ -2,7 +2,7 @@
    đổi build => URL mới => trình duyệt coi là SW mới (không bị CDN/HTTP cache giữ). */
 const V = new URL(self.location.href).searchParams.get('v') || '0';
 const CACHE = 'muse-' + V;
-const ASSETS = ['./', 'index.html', 'css/style.css', 'manifest.webmanifest', 'version.json',
+const ASSETS = ['./', 'index.html', 'css/style.css', 'css/fonts.css', 'fonts/be-vietnam-pro-vietnamese-400-normal.woff2', 'fonts/be-vietnam-pro-latin-400-normal.woff2', 'fonts/be-vietnam-pro-vietnamese-500-normal.woff2', 'fonts/be-vietnam-pro-latin-500-normal.woff2', 'fonts/be-vietnam-pro-vietnamese-600-normal.woff2', 'fonts/be-vietnam-pro-latin-600-normal.woff2', 'fonts/be-vietnam-pro-vietnamese-700-normal.woff2', 'fonts/be-vietnam-pro-latin-700-normal.woff2', 'fonts/be-vietnam-pro-vietnamese-800-normal.woff2', 'fonts/be-vietnam-pro-latin-800-normal.woff2', 'manifest.webmanifest', 'version.json',
   'icons/icon-192.png', 'icons/icon-512.png', 'icons/maskable-512.png',
   'js/version.js', 'js/theory.js', 'js/store.js', 'js/uistate.js', 'js/generator.js', 'js/midifile.js',
   'js/audio.js', 'js/input.js', 'js/voice.js', 'js/roll.js', 'js/ui.js', 'js/studio.js', 'js/projects.js', 'js/main.js', 'js/changelog.js', 'js/app.js'];

@@ -26,9 +26,35 @@
   };
   const live = new Set();
 
+  // iOS: tiếng Web Audio bị công tắc "im lặng" chặn và bị ngắt khi app ra nền → khai báo phiên "playback"
+  // và giữ một thẻ <audio> câm để Safari coi đây là ứng dụng phát nhạc.
+  let silentEl = null;
+  function iosSession(type) {
+    try { if (navigator.audioSession) navigator.audioSession.type = type; } catch (e) { /* ok */ }
+  }
+  function keepAlive() {
+    iosSession('playback');
+    if (silentEl || typeof document === 'undefined') return;
+    try {
+      const n = 4410, b = new Uint8Array(44 + n * 2), v = new DataView(b.buffer);
+      const w = (o, t) => { for (let i = 0; i < t.length; i++) b[o + i] = t.charCodeAt(i); };
+      w(0, 'RIFF'); v.setUint32(4, 36 + n * 2, true); w(8, 'WAVEfmt '); v.setUint32(16, 16, true); v.setUint16(20, 1, true); v.setUint16(22, 1, true);
+      v.setUint32(24, 44100, true); v.setUint32(28, 88200, true); v.setUint16(32, 2, true); v.setUint16(34, 16, true); w(36, 'data'); v.setUint32(40, n * 2, true);
+      silentEl = new Audio(URL.createObjectURL(new Blob([b], { type: 'audio/wav' })));
+      silentEl.loop = true; silentEl.volume = 0.01; silentEl.setAttribute('playsinline', '');
+      const p = silentEl.play(); if (p && p.catch) p.catch(() => { silentEl = null; });
+    } catch (e) { silentEl = null; }
+  }
+  function wake() { if (ctx && ctx.state !== 'running') { try { ctx.resume(); } catch (e) { /* ok */ } } }
+  if (typeof document !== 'undefined') {
+    document.addEventListener('visibilitychange', () => { if (!document.hidden) wake(); });
+    ['touchend', 'pointerdown', 'keydown'].forEach((ev) => document.addEventListener(ev, wake, { passive: true, capture: true }));
+  }
+
   function ensure() {
+    keepAlive();
     if (ctx) {
-      if (ctx.state === 'suspended') ctx.resume();
+      if (ctx.state !== 'running') ctx.resume();
       return ctx;
     }
     const AC = G.AudioContext || G.webkitAudioContext;
@@ -350,5 +376,6 @@
     },
   };
 
+  Audio.session = iosSession;
   MS.Audio = Audio;
 })();

@@ -65,7 +65,7 @@ kbd {
 }
 
 /* ---------- bố cục ---------- */
-.app { height: 100vh; display: grid; grid-template-rows: auto 1fr; gap: 10px; padding: 10px; }
+.app { height: 100vh; height: 100dvh; display: grid; grid-template-rows: auto 1fr; gap: 10px; padding: 10px; }
 .topbar { display: flex; align-items: center; gap: 14px; padding: 8px 14px; flex-wrap: wrap; }
 .layout { display: grid; grid-template-columns: 252px minmax(0, 1fr) 346px; gap: 10px; min-height: 0; }
 .side { padding: 12px; overflow-y: auto; min-height: 0; scrollbar-width: thin; scrollbar-color: rgba(255,255,255,.25) transparent; }
@@ -639,3 +639,13 @@ body.phone.roll-full .probar .btn.tiny { min-height: 32px; height: 32px; padding
 .np-info b { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; font-size: 14px; }
 .np-info small { opacity: .65; font-size: 11px; }
 @media (max-width: 700px) { .np-grid { grid-template-columns: 1fr 1fr; } .newdlg { padding: 18px 16px; } }
+
+/* ---------- iOS / Android / PC: mượt & tiện ---------- */
+html { -webkit-text-size-adjust: 100%; text-size-adjust: 100%; }
+/* iOS tự phóng to khi chạm vào ô nhập có chữ < 16px → ép 16px trên màn cảm ứng */
+@media (pointer: coarse) { input, select, textarea, .field, .st-input, .lyric-edit { font-size: 16px; } }
+/* kính mờ rất tốn GPU trên máy yếu: giảm độ mờ trên điện thoại, tắt khi bật "giảm chuyển động" */
+@media (max-width: 700px) { .glass { -webkit-backdrop-filter: blur(10px) saturate(140%); backdrop-filter: blur(10px) saturate(140%); } }
+@media (prefers-reduced-motion: reduce) { *, *::before, *::after { animation-duration: .001ms !important; animation-iteration-count: 1 !important; transition-duration: .001ms !important; } .glass { -webkit-backdrop-filter: none; backdrop-filter: none; } }
+/* tai thỏ / thanh Home: chừa vùng an toàn cho các bảng nổi */
+.voice-panel { padding-bottom: max(14px, env(safe-area-inset-bottom)); }
