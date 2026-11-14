@@ -6,6 +6,7 @@
   const body = document.body;
   const standalone = () => matchMedia('(display-mode: standalone)').matches || matchMedia('(display-mode: fullscreen)').matches || navigator.standalone === true;
   const isTouch = matchMedia('(pointer: coarse)').matches;
+  const isPhoneDevice = isTouch && Math.min(screen.width, screen.height) < 700;
   const isIOS = /iphone|ipad|ipod/i.test(navigator.userAgent) || (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
   const toast = (m) => MS.UI && MS.UI.toast && MS.UI.toast(m);
   const ver = () => 'v' + MS.VERSION;
@@ -41,6 +42,7 @@
     if (started || !splash.classList.contains('ready')) return;
     started = true;
     try { if (MS.Audio) { MS.Audio.ensure(); if (MS.Audio.ctx && MS.Audio.ctx.state === 'suspended') MS.Audio.ctx.resume(); } } catch (e) { /* ok */ }
+    lockPortrait(); // điện thoại mặc định màn dọc; chỉ piano roll mới xoay ngang
     splash.classList.add('go');
     setTimeout(() => { splash.hidden = true; if (MS.UI && MS.UI.centerRoll) MS.UI.centerRoll(); }, 650);
   }
@@ -174,9 +176,10 @@
     setTimeout(() => { if (MS.UI && MS.UI.centerRoll) MS.UI.centerRoll(); if (innerHeight > innerWidth) toast('Xoay ngang điện thoại để có chỗ soạn rộng hơn.'); }, 120);
   }
   function lockLandscape() { try { if (screen.orientation && screen.orientation.lock) screen.orientation.lock('landscape').catch(() => {}); } catch (e) { /* ok */ } }
+  function lockPortrait() { try { if (isPhoneDevice && screen.orientation && screen.orientation.lock) screen.orientation.lock('portrait').catch(() => {}); } catch (e) { /* ok */ } }
   function closeRoll() {
     body.classList.remove('roll-full');
-    try { if (screen.orientation && screen.orientation.unlock) screen.orientation.unlock(); } catch (e) { /* ok */ }
+    lockPortrait();
     placeDock();
   }
   $('rollClose').addEventListener('click', closeRoll);
