@@ -4,6 +4,14 @@
   const MS = (globalThis.MS = globalThis.MS || {});
   MS.CHANGELOG = [
     {
+      v: '0.2.1', date: '14/11/2026', title: 'Giao diện có ảnh minh hoạ',
+      items: [
+        'Màn mở app có nền sóng nhạc neon tím–vàng (ảnh dọc cho điện thoại, ảnh ngang cho máy tính), chuyển động nhẹ.',
+        'Popup “Có gì mới” có ảnh bìa; màn hình trống có biểu tượng micro vàng.',
+        'Ảnh đã nén WebP (~220 KB cả ba), lưu sẵn để chạy offline.',
+      ],
+    },
+    {
       v: '0.2.0', date: '14/11/2026', title: 'Mượt trên iPhone, Android và máy tính',
       items: [
         'Phông chữ được đóng gói sẵn trong app: mở nhanh hơn, chạy offline, không còn nháy chữ.',

@@ -649,3 +649,14 @@ html { -webkit-text-size-adjust: 100%; text-size-adjust: 100%; }
 @media (prefers-reduced-motion: reduce) { *, *::before, *::after { animation-duration: .001ms !important; animation-iteration-count: 1 !important; transition-duration: .001ms !important; } .glass { -webkit-backdrop-filter: none; backdrop-filter: none; } }
 /* tai thỏ / thanh Home: chừa vùng an toàn cho các bảng nổi */
 .voice-panel { padding-bottom: max(14px, env(safe-area-inset-bottom)); }
+
+
+/* ================= ảnh minh hoạ (assets/*.webp) — có nền gradient dự phòng ================= */
+.splash-bg { background-image: linear-gradient(180deg, rgba(8,3,28,.25), rgba(8,3,28,.55)), url(../assets/hero.webp), radial-gradient(ellipse at 50% 30%, #2a1670, transparent 60%), linear-gradient(160deg, #0a0420, #1b0e47 45%, #0c3550); background-size: cover; background-position: center; animation: bgdrift 24s ease-in-out infinite alternate; }
+@media (max-aspect-ratio: 1/1) { .splash-bg { background-image: linear-gradient(180deg, rgba(8,3,28,.2), rgba(8,3,28,.6)), url(../assets/splash.webp), linear-gradient(160deg, #0a0420, #1b0e47 45%, #0c3550); } }
+@keyframes bgdrift { from { background-position: 45% 50%; transform: scale(1.04); } to { background-position: 55% 50%; transform: scale(1.1); } }
+.wn-card { position: relative; background: linear-gradient(180deg, rgba(10,4,32,.35), rgba(10,4,32,.95) 170px) top/100% 190px no-repeat, url(../assets/hero.webp) top/100% 190px no-repeat, rgba(14,8,40,.94); }
+.wn-card::before { content: ""; display: block; height: 70px; flex: none; }
+.roll-empty::before { content: ""; display: block; width: 96px; height: 96px; margin: 0 auto 8px; border-radius: 24px; background: url(../assets/mic.webp) center/cover; box-shadow: 0 10px 30px rgba(168,85,247,.45); animation: pulse 3s ease-in-out infinite; }
+.phone .roll-empty::before { width: 64px; height: 64px; border-radius: 16px; }
+@media (prefers-reduced-motion: reduce) { .splash-bg, .roll-empty::before { animation: none; } }
