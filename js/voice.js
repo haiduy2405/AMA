@@ -138,7 +138,7 @@
   if (typeof document === 'undefined') return;
   const $ = (id) => document.getElementById(id);
   const S = MS.S;
-  const st = { state: 'idle', ctx: null, stream: null, an: null, buf: null, timer: null, frames: [], t0: 0, tick: 0, ids: null, trace: [], startedAt: 0, last: null };
+  const st = { state: 'idle', ctx: null, stream: null, an: null, buf: null, timer: null, frames: [], t0: 0, tick: 0, ids: null, locked: false, trace: [], startedAt: 0, last: null };
 
   function setState(s) {
     st.state = s;
@@ -149,6 +149,7 @@
     go.disabled = s === 'count';
     go.classList.toggle('danger', s === 'rec');
     $('vpOpts').hidden = s !== 'review';
+    $('vpOpts').classList.toggle('locked', !!st.locked);
     $('vpAfter').hidden = s !== 'review';
   }
   function msg(t) { $('vpMsg').innerHTML = t; }
@@ -181,7 +182,13 @@
   }
 
   async function start() {
-    if (st.ids) removeInserted();
+    if (st.ids) {
+      if (st.locked) { // bạn đã chỉnh tay đoạn trước → giữ nguyên, đoạn mới nối tiếp phía sau
+        S.cursor = Math.min(MS.Store.totalSteps(), Math.ceil(st.last.end / 16) * 16);
+        st.ids = null;
+      } else removeInserted();
+    }
+    st.locked = false;
     const song = MS.Store.song;
     try {
       st.stream = await navigator.mediaDevices.getUserMedia({ audio: { echoCancellation: false, noiseSuppression: false, autoGainControl: false } });
@@ -276,6 +283,29 @@
     if (!st.frames.filter((x) => x.f > 0).length) { setState('idle'); msg('Chưa nghe thấy giọng hát. Thử hát to hơn hoặc lại gần micro hơn rồi bấm <b>Bắt đầu hát</b>.'); return; }
     setState('review');
     apply(true);
+    play();
+  }
+  function play() {
+    if (st.last && MS.UI) MS.UI.playRange(st.last.start, st.last.end);
+  }
+  // đưa đoạn vừa hát ra màn chính để chỉnh sửa
+  function showMelody() {
+    if (!st.ids) return;
+    const ns = MS.Store.song.notes.filter((n) => st.ids.has(n.id));
+    if (!ns.length) return;
+    const start = Math.min(...ns.map((n) => n.start));
+    const mid = Math.round(ns.reduce((a, n) => a + n.pitch, 0) / ns.length);
+    const phone = document.body.classList.contains('phone');
+    if (phone) {
+      if (document.body.classList.contains('roll-full')) { const x = $('rollClose'); if (x) x.click(); }
+      const b = document.querySelector('#bottomNav [data-nav="studio"]'); if (b) b.click();
+    }
+    else { const cur = document.querySelector('#viewSw .on'); if (cur && cur.dataset.mode === 'roll') document.querySelector('#viewSw [data-mode="split"]').click(); }
+    S.cursor = start;
+    if (MS.Studio) MS.Studio.select(Math.floor(start / 16), 0, { preview: false });
+    S.selection = new Set(st.ids);
+    if (MS.hooks && MS.hooks.selection) MS.hooks.selection();
+    if (MS.UI) MS.UI.revealRange(start, mid);
   }
 
   function opts() {
@@ -321,15 +351,22 @@
     if (!$('voicePanel')) return;
     $('btnVoice').addEventListener('click', open);
     $('vpClose').addEventListener('click', close);
-    $('vpDone').addEventListener('click', close);
+    $('vpEdit').addEventListener('click', () => { showMelody(); close(); });
     $('vpGo').addEventListener('click', () => {
       if (st.state === 'rec') stop();
       else if (st.state === 'idle' || st.state === 'review') start();
     });
     ['vpScale', 'vpQ'].forEach((id) => $(id).addEventListener('change', () => { if (st.state === 'review' && st.frames.length) apply(false); }));
-    $('vpPlay').addEventListener('click', () => { if (st.last && MS.UI) { MS.Audio.ensure(); MS.UI.startPlay(st.last.start); } });
+    $('vpPlay').addEventListener('click', play);
+    // nếu người dùng chỉnh tay đoạn vừa tạo thì khoá các tuỳ chọn (tránh ghi đè công sức chỉnh)
+    MS.Store.on((reason) => {
+      if (st.state !== 'review' || !st.ids || reason === 'voice' || st.locked) return;
+      st.locked = true;
+      $('vpOpts').classList.add('locked');
+      msg('Bạn đã chỉnh tay đoạn này nên không đổi lưới/thang âm tự động nữa. Muốn tạo lại: <b>Hát lại</b> (đoạn mới sẽ nối tiếp phía sau).');
+    });
     $('vpSuggest').addEventListener('click', () => { close(); if (MS.UI) { MS.Audio.ensure(); MS.UI.suggest(); } });
-    $('vpLyrics').addEventListener('click', () => { close(); const b = document.querySelector('#bottomNav [data-nav="studio"]'); if (b && document.body.classList.contains('phone')) b.click(); else if (MS.Studio) MS.Studio.render(); });
+    $('vpLyrics').addEventListener('click', () => { showMelody(); close(); if (MS.Studio) MS.Studio.startEdit && MS.Studio.startEdit(Math.floor(S.cursor / 16)); });
     document.addEventListener('keydown', (e) => { if (e.key === 'Escape' && !$('voicePanel').hidden) { e.stopPropagation(); close(); } }, true);
   }
   MS.Voice.init = init;

@@ -15,7 +15,7 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:wght@400;500;600;700;800&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="css/style.css?v=20261114.064625">
+<link rel="stylesheet" href="css/style.css?v=20261114.065729">
 <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Cdefs%3E%3ClinearGradient id='g' x1='0' y1='0' x2='1' y2='1'%3E%3Cstop offset='0' stop-color='%2322d3ee'/%3E%3Cstop offset='1' stop-color='%23a855f7'/%3E%3C/linearGradient%3E%3C/defs%3E%3Crect width='64' height='64' rx='16' fill='url(%23g)'/%3E%3Cpath d='M26 44V20l18-4v22' stroke='white' stroke-width='4' fill='none' stroke-linecap='round'/%3E%3Ccircle cx='22' cy='44' r='5' fill='white'/%3E%3Ccircle cx='40' cy='38' r='5' fill='white'/%3E%3C/svg%3E">
 </head>
 <body>
@@ -100,7 +100,7 @@
 
     <div class="group files">
       <button class="btn ghost" id="btnDemo" title="Nạp bài mẫu">Bài mẫu</button>
-      <button class="btn ghost" id="btnNew" title="Bài mới">Mới</button>
+      <button class="btn ghost" id="btnNew" title="Bài mới — lưu bài cũ và bắt đầu bài khác">＋ Bài mới</button>
       <button class="btn ghost" id="btnSave" title="Lưu .json">Lưu</button>
       <button class="btn ghost" id="btnOpen" title="Mở .json">Mở</button>
       <input id="fileOpen" type="file" accept=".json,application/json" hidden>
@@ -349,6 +349,21 @@
   </main>
 </div>
 
+<dialog id="newDlg" class="glass dlg newdlg">
+  <h2>🎵 Bài mới</h2>
+  <p class="np-note" id="npCurrent">Bài đang soạn “<b id="npCurName"></b>” sẽ được lưu vào <em>Bài gần đây</em> để mở lại sau.</p>
+  <label class="np-f np-wide"><span>Tên bài</span><input id="npTitle" class="field" type="text" placeholder="Bài mới" autocomplete="off" maxlength="60"></label>
+  <div class="np-grid">
+    <label class="np-f"><span>Giọng</span><select id="npKey" class="field"></select></label>
+    <label class="np-f"><span>Điệu</span><select id="npMode" class="field"><option value="major">Trưởng</option><option value="minor">Thứ</option></select></label>
+    <label class="np-f"><span>Nhịp độ (BPM)</span><input id="npBpm" class="field" type="number" min="30" max="240" inputmode="numeric"></label>
+    <label class="np-f"><span>Số ô nhịp</span><input id="npBars" class="field" type="number" min="1" max="128" inputmode="numeric"></label>
+  </div>
+  <label class="vk-step np-discard"><input type="checkbox" id="npDiscard"><span>Xoá hẳn bài đang soạn (không lưu vào Bài gần đây)</span></label>
+  <div class="np-actions"><button class="btn gold" id="npCreate">Tạo bài mới</button><button class="btn" id="npCancel">Huỷ</button></div>
+  <div id="npRecentWrap" hidden><h3>Bài gần đây</h3><div id="npRecent" class="np-list"></div></div>
+</dialog>
+
 <dialog id="help" class="glass dlg">
   <h2>Phím tắt</h2>
   <div class="keys">
@@ -395,26 +410,27 @@
     <button class="btn gold" id="vpGo">⏺ Bắt đầu hát</button>
     <span id="vpAfter" class="vp-after" hidden>
       <button class="btn" id="vpPlay">▶ Nghe lại</button>
+      <button class="btn gold" id="vpEdit">✏️ Chỉnh sửa ở màn chính</button>
       <button class="btn" id="vpSuggest">✨ Gợi ý tiếp</button>
       <button class="btn" id="vpLyrics">🎼 Viết lời</button>
-      <button class="btn" id="vpDone">Xong</button>
     </span>
   </div>
 </div>
-<script src="js/version.js?v=20261114.064625"></script>
-<script src="js/theory.js?v=20261114.064625"></script>
-<script src="js/store.js?v=20261114.064625"></script>
-<script src="js/uistate.js?v=20261114.064625"></script>
-<script src="js/generator.js?v=20261114.064625"></script>
-<script src="js/midifile.js?v=20261114.064625"></script>
-<script src="js/audio.js?v=20261114.064625"></script>
-<script src="js/input.js?v=20261114.064625"></script>
-<script src="js/voice.js?v=20261114.064625"></script>
-<script src="js/roll.js?v=20261114.064625"></script>
-<script src="js/ui.js?v=20261114.064625"></script>
-<script src="js/studio.js?v=20261114.064625"></script>
-<script src="js/main.js?v=20261114.064625"></script>
-<script src="js/changelog.js?v=20261114.064625"></script>
-<script src="js/app.js?v=20261114.064625"></script>
+<script src="js/version.js?v=20261114.065729"></script>
+<script src="js/theory.js?v=20261114.065729"></script>
+<script src="js/store.js?v=20261114.065729"></script>
+<script src="js/uistate.js?v=20261114.065729"></script>
+<script src="js/generator.js?v=20261114.065729"></script>
+<script src="js/midifile.js?v=20261114.065729"></script>
+<script src="js/audio.js?v=20261114.065729"></script>
+<script src="js/input.js?v=20261114.065729"></script>
+<script src="js/voice.js?v=20261114.065729"></script>
+<script src="js/roll.js?v=20261114.065729"></script>
+<script src="js/ui.js?v=20261114.065729"></script>
+<script src="js/studio.js?v=20261114.065729"></script>
+<script src="js/projects.js?v=20261114.065729"></script>
+<script src="js/main.js?v=20261114.065729"></script>
+<script src="js/changelog.js?v=20261114.065729"></script>
+<script src="js/app.js?v=20261114.065729"></script>
 </body>
 </html>

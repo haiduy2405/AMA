@@ -47,6 +47,19 @@
     if (f >= Store.totalSteps()) f = 0;
     Tr.play({ from: f, loop });
   }
+  // phát đúng một đoạn (dùng cho "Nghe lại" sau khi hát)
+  function playRange(from, to) {
+    if (Input.recState !== 'idle') Input.stopRecord();
+    Audio.ensure();
+    S.cursor = from;
+    Tr.play({ from, to: Math.min(to + 2, Store.totalSteps()), loop: null });
+  }
+  // cuộn piano roll tới một đoạn giai điệu
+  function revealRange(start, midPitch) {
+    roll.sc.scrollLeft = Math.max(0, start * roll.zx - 80);
+    if (midPitch != null) roll.scrollToPitch(midPitch);
+    roll.invalidate();
+  }
   function togglePlay() {
     if (Input.recState !== 'idle') { Input.stopRecord(); return; }
     if (Tr.playing) {
@@ -738,7 +751,7 @@
       chordEdit() { renderInspector(); $('chRoot').focus(); },
       loopChanged() { $('btnLoop').classList.toggle('on', S.loop.on); },
       noteLen: syncNoteLen,
-      suggest,
+      suggest, playRange, revealRange,
     };
 
     Store.on(onChange);
@@ -768,11 +781,6 @@
 
     // file
     $('btnDemo').addEventListener('click', () => { Store.replace(MS.demoSong(), true); S.cursor = 0; toast('Đã nạp bài mẫu — bấm Space để nghe.'); centerRoll(); });
-    $('btnNew').addEventListener('click', () => {
-      if (Store.song.notes.length || Store.song.chords.length) { if (!confirm('Tạo bài mới? Bài hiện tại vẫn nằm trong Hoàn tác (Ctrl+Z).')) return; }
-      Store.replace(Store.blank(), true);
-      S.cursor = 0; S.candidates = []; S.activeCand = -1; renderCands();
-    });
     $('btnSave').addEventListener('click', () => download(fileBase() + '.muse.json', Store.toJSON(), 'application/json'));
     $('btnOpen').addEventListener('click', () => $('fileOpen').click());
     $('fileOpen').addEventListener('change', (e) => {
@@ -993,5 +1001,5 @@
     requestAnimationFrame(frame);
   }
 
-  MS.UI = { init, toast, startPlay, suggest, centerRoll, renderMotif, selectCand, acceptCand, dismissCands, previewCand };
+  MS.UI = { init, toast, startPlay, playRange, revealRange, suggest, centerRoll, renderMotif, selectCand, acceptCand, dismissCands, previewCand };
 })();

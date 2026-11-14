@@ -23,7 +23,13 @@
   const flats = () => T.useFlats(song().key, song().mode);
   const esc = (t) => String(t).replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
   const notesOf = (bar) => Store.notesInBar(bar).slice().sort((a, b) => a.start - b.start || a.pitch - b.pitch);
-  const tokensOf = (bar) => T.vnTokens(Store.lyricOf(bar));
+  const realTokens = (bar) => T.vnTokens(Store.lyricOf(bar));
+  // ô có nốt nhưng chưa có lời (vd. vừa hát vào micro): mỗi nốt là một ô "♪" để vẫn chạm chọn / đổi nốt được
+  const tokensOf = (bar) => {
+    const t = realTokens(bar);
+    if (t.length) return t;
+    return Array.from({ length: Math.min(16, Store.notesInBar(bar).length) }, () => ({ text: '♪', tone: 'ngang', ph: true }));
+  };
   const degOf = (p) => T.pitchToDeg(p, song().key, song().mode);
   const pitchOf = (d) => T.degToPitch(d, song().key, song().mode);
   const TONE_GLYPH = { sắc: '↗', ngã: '⤴', huyền: '↘', hỏi: '⤵', nặng: '↓', ngang: '' };
@@ -42,11 +48,11 @@
 
   // ---------- dựng giao diện ----------
   function lineHTML(b) {
-    const toks = tokensOf(b), notes = notesOf(b), n = toks.length;
+    const toks = tokensOf(b), notes = notesOf(b), n = toks.length, ph = n > 0 && !realTokens(b).length;
     const sec = Store.sectionAt(b);
     let stat = '', cls = '';
     if (n > 16) { stat = n + ' tiếng — quá 16, hãy tách bớt'; cls = 'warn'; }
-    else if (n === 0 && notes.length) { stat = notes.length + ' nốt · chưa có lời'; cls = 'info'; }
+    else if (ph) { stat = notes.length + ' nốt · chưa có lời — bấm ✎ để viết lời'; cls = 'info'; }
     else if (n) {
       if (notes.length === n) { stat = n + ' tiếng · ' + n + ' nốt ✓'; cls = 'ok'; }
       else if (notes.length < n) { stat = n + ' tiếng · thiếu ' + (n - notes.length) + ' nốt'; cls = 'warn'; }
@@ -233,7 +239,7 @@
   // ---------- AI ----------
   function cadenceOf(bar) { return bar % 4 === 3 ? 'closed' : bar % 2 === 1 ? 'open' : 'mid'; }
   function aiFill(bar, regen) {
-    const toks = tokensOf(bar), n = toks.length;
+    const toks = realTokens(bar), n = toks.length;
     if (!n) { toast('Gõ lời cho ô ' + (bar + 1) + ' trước, rồi mình gợi ý nốt.'); return false; }
     if (n > 16) { toast('Dòng này quá 16 tiếng — hãy tách bớt.'); return false; }
     const have = notesOf(bar);
@@ -289,7 +295,7 @@
       if (song().bars >= 128) { toast('Bài đã đạt tối đa 128 ô nhịp.'); return; }
       Store.commit((s) => { s.bars = Math.min(128, s.bars + 1); });
     }
-    const toks = tokensOf(nb);
+    const toks = realTokens(nb);
     if (!toks.length) {
       select(nb, 0, { preview: false });
       startEdit(nb);

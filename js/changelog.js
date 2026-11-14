@@ -4,6 +4,17 @@
   const MS = (globalThis.MS = globalThis.MS || {});
   MS.CHANGELOG = [
     {
+      v: '0.1.4', date: '14/11/2026', title: 'Bài mới & đoạn hát hiện ở màn chính',
+      items: [
+        '＋ Bài mới: đặt tên, giọng, nhịp độ, số ô rồi bắt đầu; bài cũ tự lưu vào “Bài gần đây” để mở lại, hoặc chọn xoá hẳn (Ctrl+Z vẫn lấy lại được).',
+        'Sau khi hát: tự nghe lại đúng đoạn vừa tạo; “Nghe lại” phát đúng đoạn đó.',
+        'Nút “✏️ Chỉnh sửa ở màn chính” đưa đoạn hát ra bảng Lời & nốt và piano roll, đã chọn sẵn các nốt để sửa.',
+        'Ô nhịp có nốt nhưng chưa có lời hiện các ô ♪ — chạm để đổi nốt, hợp âm, độ dài như bình thường.',
+        'Đã chỉnh tay thì app không tự ghi đè bằng tuỳ chọn căn nhịp/thang âm; “Hát lại” nối tiếp phía sau đoạn cũ.',
+        'Điện thoại: thoát piano roll ngang rồi mở bảng Soạn khi bấm “Chỉnh sửa”.',
+      ],
+    },
+    {
       v: '0.1.3', date: '14/11/2026', title: 'Hát để tạo melody & Piano roll Pro',
       items: [
         '🎤 Hát vào micro: bấm nút micro, đếm 4 nhịp, hát một câu — app dò cao độ, tách thành nốt, căn nhịp và đưa vào piano roll. Tự nhận giọng nếu bài còn trống.',

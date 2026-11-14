@@ -617,3 +617,25 @@ body:not(.phone) .st-top { padding: 5px 10px; }
 @media (max-width: 1020px) { .probar { flex-wrap: nowrap; overflow-x: auto; scrollbar-width: none; } .probar::-webkit-scrollbar { display: none; } .probar > * { flex: none; } }
 body.phone.roll-full .probar { grid-column: 1 / -1; padding: 3px 6px; min-width: 0; }
 body.phone.roll-full .probar .btn.tiny { min-height: 32px; height: 32px; padding: 0 11px; }
+
+.voice-panel[data-state="review"] .vp-body, .voice-panel[data-state="review"] .vp-meter, .voice-panel[data-state="review"] .vp-count { display: none; }
+.voice-panel[data-state="review"] { padding-top: 8px; }
+.vp-opts.locked { opacity: .45; pointer-events: none; }
+
+/* ---------- bài mới ---------- */
+.newdlg { width: min(560px, calc(100vw - 20px)); }
+.newdlg h3 { margin: 18px 0 8px; font-size: 14px; opacity: .85; }
+.np-note { margin: 0 0 12px; font-size: 13px; opacity: .85; line-height: 1.45; }
+.np-f { display: flex; flex-direction: column; gap: 4px; font-size: 12px; opacity: .95; }
+.np-f span { opacity: .75; }
+.np-f .field { width: 100%; }
+.np-wide { margin-bottom: 10px; }
+.np-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+.np-discard { margin-top: 12px; opacity: .85; }
+.np-actions { display: flex; gap: 8px; margin-top: 14px; }
+.np-list { display: flex; flex-direction: column; gap: 6px; max-height: 190px; overflow: auto; }
+.np-row { display: flex; align-items: center; gap: 8px; padding: 8px 10px; border-radius: 12px; background: rgba(255,255,255,.07); }
+.np-info { flex: 1; min-width: 0; display: flex; flex-direction: column; }
+.np-info b { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; font-size: 14px; }
+.np-info small { opacity: .65; font-size: 11px; }
+@media (max-width: 700px) { .np-grid { grid-template-columns: 1fr 1fr; } .newdlg { padding: 18px 16px; } }
