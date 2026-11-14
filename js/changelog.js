@@ -4,6 +4,12 @@
   const MS = (globalThis.MS = globalThis.MS || {});
   MS.CHANGELOG = [
     {
+      v: '0.3.3', date: '14/11/2026', title: 'Thông báo không che nút',
+      items: [
+        'Thông báo nổi chuyển lên phía trên, không còn che hàng chọn nốt / dock và không chặn cú chạm.',
+      ],
+    },
+    {
       v: '0.3.2', date: '14/11/2026', title: 'Sửa lỗi nháy / mất khung trên điện thoại',
       items: [
         'Trên điện thoại và máy bảng: nền tĩnh, bỏ kính mờ và quả cầu mờ chuyển động — nguyên nhân làm màn hình nháy, mất khung và chữ.',
