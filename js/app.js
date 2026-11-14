@@ -40,7 +40,6 @@
   function start() {
     if (started || !splash.classList.contains('ready')) return;
     started = true;
-    if (isTouch && !standalone()) goFull(); // phải nằm trong cử chỉ chạm
     try { if (MS.Audio) { MS.Audio.ensure(); if (MS.Audio.ctx && MS.Audio.ctx.state === 'suspended') MS.Audio.ctx.resume(); } } catch (e) { /* ok */ }
     splash.classList.add('go');
     setTimeout(() => { splash.hidden = true; if (MS.UI && MS.UI.centerRoll) MS.UI.centerRoll(); }, 650);
@@ -171,7 +170,7 @@
   function openRoll() {
     body.classList.add('roll-full');
     placeDock();
-    if (isTouch && !standalone()) goFull().then(lockLandscape); else lockLandscape();
+    lockLandscape();
     setTimeout(() => { if (MS.UI && MS.UI.centerRoll) MS.UI.centerRoll(); if (innerHeight > innerWidth) toast('Xoay ngang điện thoại để có chỗ soạn rộng hơn.'); }, 120);
   }
   function lockLandscape() { try { if (screen.orientation && screen.orientation.lock) screen.orientation.lock('landscape').catch(() => {}); } catch (e) { /* ok */ } }
