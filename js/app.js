@@ -209,14 +209,37 @@
   ];
   moves.forEach((m) => { m.ph = document.createComment('slot'); m.el.parentNode.insertBefore(m.ph, m.el); });
   const dock = moves[2];
+  // thanh thao tác nốt đã chọn: trên điện thoại nổi ngay trên piano roll (chỉ hiện khi có nốt được chọn)
+  const selEl = document.querySelector('.selactions'), selPh = document.createComment('sel');
+  selEl.parentNode.insertBefore(selPh, selEl);
   function placeDock() {
     const c = compactMQ.matches, ph = body.classList.contains('phone'), full = body.classList.contains('roll-full');
+    if (ph) $('rollWrap').appendChild(selEl); else selPh.parentNode.insertBefore(selEl, selPh.nextSibling);
     dock.el.classList.toggle('dock', c);
     if (!c) dock.ph.parentNode.insertBefore(dock.el, dock.ph.nextSibling);
     else if (ph && !full) dockHome.appendChild(dock.el);
     else if (ph && full) center.insertBefore(dock.el, rollbar);
     else center.appendChild(dock.el);
   }
+  // ----- menu ⋯ : công cụ ít dùng được gom lại -----
+  const moreMenu = $('moreMenu'), btnMore = $('btnMore');
+  document.body.appendChild(moreMenu); // nằm ngoài .center (bị ẩn ở màn Soạn trên điện thoại)
+  const MENU = [
+    ['Phát & nhịp', [['btnLoop', '🔁 Lặp vùng', 1], ['btnMetro', '🥁 Metronome', 1], ['btnDrums', '🪘 Trống nhẹ', 1]]],
+    ['Piano roll', [['pAll', 'Chọn hết'], ['pLegato', 'Legato'], ['pChop', 'Chia đôi nốt'], ['pRev', 'Đảo ngược'], ['pFix', 'Ép vào thang'], ['pHum', 'Lực tự nhiên'], ['pLoop', 'Lặp vùng chọn'], ['pFit', 'Vừa khung'], ['pVel', '▥ Làn lực nhấn', 1], ['pLock', '🔒 Khoá thang âm', 1], ['zoomOutX', '↔ −'], ['zoomInX', '↔ +'], ['zoomOutY', '↕ −'], ['zoomInY', '↕ +']], true],
+  ];
+  function buildMenu() {
+    const full = body.classList.contains('roll-full');
+    moreMenu.innerHTML = MENU.filter((g) => !g[2] || full).map((g) => '<h5>' + g[0] + '</h5><div class="mm-grid">' + g[1].map((it) =>
+      '<button class="mm-b' + (it[2] && $(it[0]).classList.contains('on') ? ' on' : '') + '" data-src="' + it[0] + '" data-tg="' + (it[2] ? 1 : 0) + '">' + it[1] + '</button>').join('') + '</div>').join('');
+  }
+  btnMore.addEventListener('click', (e) => { e.stopPropagation(); if (moreMenu.hidden) { buildMenu(); moreMenu.hidden = false; } else moreMenu.hidden = true; });
+  moreMenu.addEventListener('click', (e) => {
+    const b = e.target.closest('.mm-b'); if (!b) return;
+    $(b.dataset.src).click();
+    if (b.dataset.tg === '1') setTimeout(buildMenu, 30); else moreMenu.hidden = true;
+  });
+  document.addEventListener('pointerdown', (e) => { if (!moreMenu.hidden && !e.target.closest('#moreMenu, #btnMore')) moreMenu.hidden = true; }, true);
   const left = document.querySelector('.side.left'), right = document.querySelector('.side.right'), settings = $('settings'), studio = $('studio');
   const panels = [left, right, settings, studio];
   const panelOf = (name) => (name === 'chords' ? left : name === 'settings' ? settings : name === 'studio' ? studio : right);

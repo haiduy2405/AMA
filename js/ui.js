@@ -482,6 +482,7 @@
   // ---------- chọn nốt / thao tác ----------
   function updateSelInfo() {
     const ns = selNotes();
+    document.body.classList.toggle('has-sel', ns.length > 0);
     const el = $('selInfo');
     if (!ns.length) el.textContent = 'Chưa chọn nốt';
     else if (ns.length === 1) el.textContent = T.noteName(ns[0].pitch, flats()) + ' · ô ' + (Math.floor(ns[0].start / 16) + 1);

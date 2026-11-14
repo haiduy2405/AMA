@@ -16,8 +16,8 @@
 <link rel="preload" href="fonts/be-vietnam-pro-latin-600-normal.woff2" as="font" type="font/woff2" crossorigin>
 <link rel="preload" href="assets/splash.webp" as="image" media="(max-aspect-ratio: 1/1)">
 <link rel="preload" href="assets/hero.webp" as="image" media="(min-aspect-ratio: 1/1)">
-<link rel="stylesheet" href="css/fonts.css?v=20261114.094635">
-<link rel="stylesheet" href="css/style.css?v=20261114.094635">
+<link rel="stylesheet" href="css/fonts.css?v=20261114.095708">
+<link rel="stylesheet" href="css/style.css?v=20261114.095708">
 <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Cdefs%3E%3ClinearGradient id='g' x1='0' y1='0' x2='1' y2='1'%3E%3Cstop offset='0' stop-color='%2322d3ee'/%3E%3Cstop offset='1' stop-color='%23a855f7'/%3E%3C/linearGradient%3E%3C/defs%3E%3Crect width='64' height='64' rx='16' fill='url(%23g)'/%3E%3Cpath d='M26 44V20l18-4v22' stroke='white' stroke-width='4' fill='none' stroke-linecap='round'/%3E%3Ccircle cx='22' cy='44' r='5' fill='white'/%3E%3Ccircle cx='40' cy='38' r='5' fill='white'/%3E%3C/svg%3E">
 </head>
 <body>
@@ -102,9 +102,12 @@
       <button class="btn icon" id="btnStop" title="Dừng"><svg viewBox="0 0 24 24"><path d="M7 7h10v10H7z"/></svg></button>
       <button class="btn icon rec" id="btnRec" title="Thu âm vào piano roll (R)"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="6"/></svg></button>
       <button class="btn icon voice" id="btnVoice" title="Hát vào micro để tạo melody"><svg viewBox="0 0 24 24"><path d="M12 15a3 3 0 0 0 3-3V6a3 3 0 0 0-6 0v6a3 3 0 0 0 3 3zm5-3a5 5 0 0 1-10 0H5a7 7 0 0 0 6 6.9V21h2v-2.1A7 7 0 0 0 19 12h-2z"/></svg></button>
+      <button class="btn icon" id="btnUndo" title="Hoàn tác (Ctrl+Z)" aria-label="Hoàn tác"><svg viewBox="0 0 24 24"><path d="M12.5 8c-2.65 0-5.05 1-6.9 2.6L2 7v9h9l-3.62-3.62A7.96 7.96 0 0 1 12.5 10c3.04 0 5.67 1.77 6.94 4.34l1.9-.62C19.6 10.5 16.4 8 12.5 8z"/></svg></button>
+      <button class="btn icon" id="btnRedo" title="Làm lại (Ctrl+Y)" aria-label="Làm lại"><svg viewBox="0 0 24 24"><path d="M11.5 8c2.65 0 5.05 1 6.9 2.6L22 7v9h-9l3.62-3.62A7.96 7.96 0 0 0 11.5 10c-3.04 0-5.67 1.77-6.94 4.34l-1.9-.62C4.4 10.5 7.6 8 11.5 8z"/></svg></button>
       <button class="btn icon toggle" id="btnLoop" title="Lặp vùng (B) — Shift+kéo trên thước để chọn vùng"><svg viewBox="0 0 24 24"><path d="M7 7h9l-2-2 1.4-1.4L20 8l-4.6 4.4L14 11l2-2H7v3H5V7zm10 10H8l2 2-1.4 1.4L4 16l4.6-4.4L10 13l-2 2h9v-3h2v5z"/></svg></button>
       <button class="btn icon toggle" id="btnMetro" title="Metronome (M)"><svg viewBox="0 0 24 24"><path d="M9 3h6l3 18H6L9 3zm2.2 2L9.5 15h5L12.8 5h-1.6zM12 8l5-4 1 1.2-5 4z"/></svg></button>
       <button class="btn icon toggle" id="btnDrums" title="Trống nhẹ"><svg viewBox="0 0 24 24"><path d="M4 10c0-2 3.6-3 8-3s8 1 8 3v6c0 2-3.6 3-8 3s-8-1-8-3v-6zm8-1c-3.3 0-6 .7-6 1s2.7 1 6 1 6-.7 6-1-2.7-1-6-1zM3 3l5 4-.8 1L2.3 4z"/></svg></button>
+      <button class="btn icon more-btn" id="btnMore" title="Thêm công cụ" aria-label="Thêm công cụ" aria-haspopup="true"><svg viewBox="0 0 24 24"><circle cx="5" cy="12" r="2"/><circle cx="12" cy="12" r="2"/><circle cx="19" cy="12" r="2"/></svg></button>
       <div class="meter" id="meter" aria-hidden="true"></div>
     </div>
 
@@ -123,7 +126,15 @@
   <!-- ============ NỘI DUNG ============ -->
   <main class="layout">
     <section id="studio" class="studio glass" aria-label="Bảng lời và nốt">
-      <div class="st-top"><b class="st-title">🎼 Lời &amp; nốt</b><span class="st-sub">Chạm chữ → chọn nốt · gõ lời · chọn hợp âm</span><span class="grow"></span><button class="btn tiny" id="stPlayAll">▶ Cả bài</button></div>
+      <div class="st-top"><b class="st-title">🎼 Lời &amp; nốt</b><span class="st-chips" id="stChips" aria-label="Thông tin bài hát"></span><span class="st-sub">Chạm chữ → chọn nốt · gõ lời · chọn hợp âm</span><span class="grow"></span><button class="btn tiny" id="stPlayAll">▶ Cả bài</button></div>
+            <div class="qs-pop glass" id="qsPop" hidden role="dialog" aria-label="Chỉnh nhanh">
+        <div class="qs-row"><label>Giọng</label><button class="btn tiny" data-qs="keyDown" aria-label="Hạ 1 cung">♭</button><select id="qsKey" class="field"></select><button class="btn tiny" data-qs="keyUp" aria-label="Tăng 1 cung">♯</button>
+          <select id="qsMode" class="field" aria-label="Trưởng/Thứ"><option value="major">Trưởng</option><option value="minor">Thứ</option></select></div>
+        <div class="qs-row"><label>Nhịp độ</label><button class="btn tiny" data-qs="bpmDown">−</button><b id="qsBpm">90</b><button class="btn tiny" data-qs="bpmUp">+</button>
+          </div>
+        <div class="qs-row"><label>Số ô nhịp</label><button class="btn tiny" data-qs="barsDown">−</button><b id="qsBars">8</b><button class="btn tiny" data-qs="barsUp">+</button></div>
+        <button class="btn tiny ghost qs-close" data-qs="close">Xong</button>
+      </div>
       <div class="st-body" id="stBody"></div>
       <div class="st-dock" id="stDock"></div>
     </section>
@@ -180,12 +191,12 @@
           <button class="btn seg-b" data-mode="roll" title="Chỉ piano roll">🎹 Roll</button>
         </div>
         <button class="btn gold phone-only" id="btnSuggestRoll" title="Gợi ý đoạn tiếp theo từ motif">✨ Gợi ý</button>
-        <button class="btn phone-only" id="btnVkb" title="Bật/tắt đàn ảo để nhập nốt">🎹 Phím</button>
+        <button class="btn phone-only" id="btnVkb" title="Bật/tắt đàn ảo để nhập nốt">🎹<span class="tl"> Phím</span></button>
         <div class="seg" role="group" aria-label="Công cụ">
-          <button class="btn seg-b on" id="toolDraw" title="Vẽ / di chuyển nốt">✎ Vẽ</button>
-          <button class="btn seg-b" id="toolSelect" title="Chọn vùng (hoặc giữ Shift khi kéo)">▭ Chọn</button>
-          <button class="btn seg-b" id="toolHand" title="Cuộn / kéo khung nhìn">✋ Cuộn</button>
-          <button class="btn seg-b" id="toolErase" title="Xoá nốt (hoặc chuột phải)">⌫ Xoá</button>
+          <button class="btn seg-b on" id="toolDraw" title="Vẽ / di chuyển nốt">✎<span class="tl"> Vẽ</span></button>
+          <button class="btn seg-b" id="toolSelect" title="Chọn vùng (hoặc giữ Shift khi kéo)">▭<span class="tl"> Chọn</span></button>
+          <button class="btn seg-b" id="toolHand" title="Cuộn / kéo khung nhìn">✋<span class="tl"> Cuộn</span></button>
+          <button class="btn seg-b" id="toolErase" title="Xoá nốt (hoặc chuột phải)">⌫<span class="tl"> Xoá</span></button>
         </div>
         <label class="mini">Lưới <select id="snap" class="field"><option value="1">1/16</option><option value="2">1/8</option><option value="4">1/4</option><option value="8">1/2</option><option value="16">1 ô</option></select></label>
         <label class="mini">Độ dài nốt <select id="noteLen" class="field"><option value="1">1/16</option><option value="2" selected>1/8</option><option value="3">1/8 chấm</option><option value="4">1/4</option><option value="6">1/4 chấm</option><option value="8">1/2</option><option value="16">1 ô</option></select></label>
@@ -205,10 +216,6 @@
           <button class="btn tiny" id="btnQuant" title="Căn nốt vào lưới">Căn lưới</button>
           <button class="btn tiny" id="btnDup" title="Nhân đôi (Ctrl+D)">Nhân đôi</button>
           <button class="btn tiny danger" id="btnDel" title="Xoá (Delete)">Xoá</button>
-        </div>
-        <div class="group-sm">
-          <button class="btn tiny" id="btnUndo" title="Hoàn tác (Ctrl+Z)">↶</button>
-          <button class="btn tiny" id="btnRedo" title="Làm lại (Ctrl+Y)">↷</button>
         </div>
       </div>
 
@@ -238,6 +245,7 @@
         </div>
         <div id="candBar" class="cand-bar glass" hidden></div>
       </div>
+      <div id="moreMenu" class="more-menu glass" hidden role="menu" aria-label="Thêm công cụ"></div>
       <div id="vkb" class="vkb glass" hidden>
         <div class="vkb-bar">
           <button class="btn tiny" id="vkOctDn" aria-label="Hạ quãng tám">◀</button>
@@ -426,21 +434,21 @@
     </span>
   </div>
 </div>
-<script src="js/version.js?v=20261114.094635"></script>
-<script src="js/theory.js?v=20261114.094635"></script>
-<script src="js/store.js?v=20261114.094635"></script>
-<script src="js/uistate.js?v=20261114.094635"></script>
-<script src="js/generator.js?v=20261114.094635"></script>
-<script src="js/midifile.js?v=20261114.094635"></script>
-<script src="js/audio.js?v=20261114.094635"></script>
-<script src="js/input.js?v=20261114.094635"></script>
-<script src="js/voice.js?v=20261114.094635"></script>
-<script src="js/roll.js?v=20261114.094635"></script>
-<script src="js/ui.js?v=20261114.094635"></script>
-<script src="js/studio.js?v=20261114.094635"></script>
-<script src="js/projects.js?v=20261114.094635"></script>
-<script src="js/main.js?v=20261114.094635"></script>
-<script src="js/changelog.js?v=20261114.094635"></script>
-<script src="js/app.js?v=20261114.094635"></script>
+<script src="js/version.js?v=20261114.095708"></script>
+<script src="js/theory.js?v=20261114.095708"></script>
+<script src="js/store.js?v=20261114.095708"></script>
+<script src="js/uistate.js?v=20261114.095708"></script>
+<script src="js/generator.js?v=20261114.095708"></script>
+<script src="js/midifile.js?v=20261114.095708"></script>
+<script src="js/audio.js?v=20261114.095708"></script>
+<script src="js/input.js?v=20261114.095708"></script>
+<script src="js/voice.js?v=20261114.095708"></script>
+<script src="js/roll.js?v=20261114.095708"></script>
+<script src="js/ui.js?v=20261114.095708"></script>
+<script src="js/studio.js?v=20261114.095708"></script>
+<script src="js/projects.js?v=20261114.095708"></script>
+<script src="js/main.js?v=20261114.095708"></script>
+<script src="js/changelog.js?v=20261114.095708"></script>
+<script src="js/app.js?v=20261114.095708"></script>
 </body>
 </html>

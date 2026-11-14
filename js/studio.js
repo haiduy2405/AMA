@@ -116,6 +116,24 @@
     }).join('') + '<button class="cc mod' + (seventh ? ' on' : '') + '" data-act="seventh" aria-label="Hợp âm 7"><b>7</b></button>';
   }
 
+  // ---- dock: 3 tab (Nốt / Hợp âm / AI) + thu gọn; nhớ lựa chọn ----
+  const DK = 'ama-dock';
+  let dockTab = 'note', dockOpen = true;
+  try { const o = JSON.parse(localStorage.getItem(DK) || '{}'); if (o.tab) dockTab = o.tab; if (o.open === false) dockOpen = false; } catch (e) { /* ok */ }
+  const saveDock = () => { try { localStorage.setItem(DK, JSON.stringify({ tab: dockTab, open: dockOpen })); } catch (e) { /* ok */ } };
+
+  // bước kế tiếp thông minh cho ô đang chọn
+  function nextStep(bar) {
+    const real = realTokens(bar).length, notes = Store.notesInBar(bar).length;
+    const hasChord = song().chords.some((c) => c.start >= bar * 16 && c.start < bar * 16 + 16);
+    if (!real && !notes) return { act: 'edit', label: '✎ Viết lời cho ô ' + (bar + 1), why: 'Ô này còn trống' };
+    if (!real) return { act: 'edit', label: '✎ Viết lời cho ' + notes + ' nốt', why: 'Đã có nốt, chưa có lời' };
+    if (notes < Math.min(real, 16)) return { act: 'ai-fill', label: '✨ Gợi ý nốt cho câu', why: 'Thiếu ' + (Math.min(real, 16) - notes) + ' nốt' };
+    if (!hasChord) return { act: 'ai-chords', label: '🎼 Gợi ý hợp âm', why: 'Chưa có hợp âm' };
+    if (bar < song().bars - 1) return { act: 'ai-next', label: '➡ Viết tiếp dòng sau', why: 'Ô ' + (bar + 1) + ' đã đủ' };
+    return { act: 'playall', label: '▶ Nghe cả bài', why: 'Đã đủ — nghe lại toàn bài' };
+  }
+
   function renderDock() {
     if (!dock) return;
     const toks = tokensOf(sel.bar), notes = notesOf(sel.bar), n = toks.length;
@@ -124,34 +142,45 @@
     const ch = Store.chordAt(step);
     const pcs = ch ? T.chordPcs(ch) : [];
     let info;
-    if (tk) info = '<b class="di-w">' + esc(tk.text) + '</b><span class="di-t">' + (tk.tone === 'ngang' ? 'thanh ngang' : 'dấu ' + tk.tone + ' ' + TONE_GLYPH[tk.tone]) + '</span><span class="di-n">' + (note ? 'nốt ' + T.noteName(note.pitch, flats()) : 'chưa có nốt') + '</span>' + (ch ? '<span class="di-c">' + T.chordName(ch, flats()) + '</span>' : '');
-    else info = '<span class="di-hint">Chạm vào một chữ trong lời để chọn nốt cho chữ đó — hoặc gõ lời cho ô ' + (sel.bar + 1) + '.</span>';
+    if (tk) info = '<b class="di-w">' + esc(tk.text) + '</b>' + (tk.tone !== 'ngang' ? '<span class="di-t">' + TONE_GLYPH[tk.tone] + ' ' + tk.tone + '</span>' : '') + '<span class="di-n">' + (note ? T.noteName(note.pitch, flats()) : 'chưa có nốt') + '</span>' + (ch ? '<span class="di-c">' + T.chordName(ch, flats()) + '</span>' : '');
+    else info = '<span class="di-hint">Chạm một chữ để chọn nốt — hoặc viết lời cho ô ' + (sel.bar + 1) + '</span>';
+    const ns = nextStep(sel.bar);
 
-    let pitches = '';
-    if (tk) {
-      for (let d = -3; d <= 9; d++) {
-        const p = pitchOf(d);
-        const ct = pcs.includes(T.mod(p, 12));
-        pitches += '<button class="pk' + (note && note.pitch === p ? ' on' : '') + (ct ? ' ct' : '') + (T.mod(d, 7) === 0 ? ' tn' : '') + '" data-act="pitch" data-p="' + p + '"><b>' + T.noteName(p, flats()) + '</b></button>';
-      }
+    let content = '';
+    if (dockTab === 'note') {
+      if (tk) {
+        let pitches = '';
+        for (let d = -3; d <= 9; d++) {
+          const p = pitchOf(d);
+          const ct = pcs.includes(T.mod(p, 12));
+          pitches += '<button class="pk' + (note && note.pitch === p ? ' on' : '') + (ct ? ' ct' : '') + (T.mod(d, 7) === 0 ? ' tn' : '') + '" data-act="pitch" data-p="' + p + '"><b>' + T.noteName(p, flats()) + '</b></button>';
+        }
+        content += '<div class="dk-row dk-pitch" aria-label="Chọn nốt">' + pitches + '</div>';
+        if (note) {
+          const durs = [[1, '1/16'], [2, '1/8'], [3, '1/8.'], [4, '1/4'], [6, '1/4.'], [8, '1/2']];
+          content += '<div class="dk-row dk-dur" aria-label="Độ dài">' + durs.map(([v, l]) => '<button class="dc' + (note.dur === v ? ' on' : '') + '" data-act="dur" data-v="' + v + '">' + l + '</button>').join('') +
+            '<button class="dc" data-act="oct" data-v="1" aria-label="Lên quãng tám">8va ▲</button><button class="dc" data-act="oct" data-v="-1" aria-label="Xuống quãng tám">8va ▼</button><button class="dc del" data-act="delnote" aria-label="Xoá nốt">🗑</button></div>';
+        }
+      } else content += '<button class="btn gold dk-next" data-act="' + ns.act + '">' + ns.label + '</button>';
+    } else if (dockTab === 'chord') {
+      content += '<div class="dk-row dk-chords" aria-label="Hợp âm">' + chordsRowHTML(step) + '</div>';
+    } else {
+      content += '<button class="btn gold dk-next" data-act="' + ns.act + '">' + ns.label + '<small>' + ns.why + '</small></button>' +
+        '<div class="dk-row dk-ai">' +
+        '<button class="btn tiny" data-act="ai-regen">🎲 Làm lại</button>' +
+        '<button class="btn tiny" data-act="ai-fill">✨ Nốt</button>' +
+        '<button class="btn tiny" data-act="ai-chords">🎼 Hợp âm</button>' +
+        '<button class="btn tiny" data-act="retime">⚖ Chia nhịp</button></div>';
     }
-    const durs = [[1, '1/16'], [2, '1/8'], [3, '1/8.'], [4, '1/4'], [6, '1/4.'], [8, '1/2']];
-    const durRow = note ? durs.map(([v, l]) => '<button class="dc' + (note.dur === v ? ' on' : '') + '" data-act="dur" data-v="' + v + '">' + l + '</button>').join('') +
-      '<button class="dc" data-act="oct" data-v="1" aria-label="Lên quãng tám">8va ▲</button><button class="dc" data-act="oct" data-v="-1" aria-label="Xuống quãng tám">8va ▼</button><button class="dc del" data-act="delnote" aria-label="Xoá nốt">⌫</button>' : '';
-
+    const tab = (k, l) => '<button class="dk-tab' + (dockTab === k && dockOpen ? ' on' : '') + '" data-act="tab" data-k="' + k + '" role="tab" aria-selected="' + (dockTab === k) + '">' + l + '</button>';
+    dock.classList.toggle('collapsed', !dockOpen);
     dock.innerHTML =
       '<div class="dk-info"><button class="ibtn" data-act="prev" aria-label="Chữ trước">‹</button><div class="dk-i">' + info + '</div><button class="ibtn" data-act="next" aria-label="Chữ sau">›</button></div>' +
-      '<div class="dk-row dk-chords" aria-label="Hợp âm">' + chordsRowHTML(step) + '</div>' +
-      (tk ? '<div class="dk-row dk-pitch" aria-label="Chọn nốt">' + pitches + '</div>' : '') +
-      (note ? '<div class="dk-row dk-dur" aria-label="Độ dài">' + durRow + '</div>' : '') +
-      '<div class="dk-row dk-ai">' +
-      '<button class="btn tiny gold" data-act="ai-fill">✨ Hoàn thiện câu</button>' +
-      '<button class="btn tiny" data-act="ai-regen">🎲 Làm lại</button>' +
-      '<button class="btn tiny" data-act="ai-chords">🎼 Hợp âm</button>' +
-      '<button class="btn tiny cyan" data-act="ai-next">➡ Dòng tiếp</button>' +
-      '<button class="btn tiny" data-act="retime">⚖ Chia nhịp</button>' +
-      '<label class="dk-auto"><input type="checkbox" id="stAuto"' + (auto ? ' checked' : '') + '><span>Tự nhảy</span></label>' +
-      '<button class="btn tiny" data-act="playhere">▶ Từ đây</button></div>';
+      '<div class="dk-tabs" role="tablist">' + tab('note', '🎵 Nốt') + tab('chord', '🎶 Hợp âm') + tab('ai', '✨ AI') +
+      '<button class="ibtn" data-act="playhere" aria-label="Nghe từ đây">▶</button>' +
+      '<button class="ibtn" data-act="toroll" aria-label="Mở trong Piano roll" title="Mở trong Piano roll">🎹</button>' +
+      '<button class="ibtn" data-act="toggledock" aria-label="' + (dockOpen ? 'Thu gọn' : 'Mở rộng') + '">' + (dockOpen ? '⌄' : '⌃') + '</button></div>' +
+      (dockOpen ? '<div class="dk-content">' + content + '</div>' : '');
     const on = dock.querySelector('.pk.on');
     const strip = dock.querySelector('.dk-pitch');
     if (on && strip) strip.scrollLeft = on.offsetLeft - strip.clientWidth / 2 + on.offsetWidth / 2;
@@ -361,6 +390,16 @@
   }
 
   // ---------- sự kiện ----------
+  // mở piano roll tại chữ đang chọn (điện thoại: toàn màn hình ngang; máy tính: chế độ chia đôi)
+  function toRoll() {
+    const nt = notesOf(sel.bar)[sel.i];
+    if (nt) S.selection = new Set([nt.id]);
+    S.cursor = tokensOf(sel.bar).length ? stepOf(sel.bar, sel.i, tokensOf(sel.bar).length, notesOf(sel.bar)) : sel.bar * 16;
+    const btn = document.querySelector('#bottomNav [data-nav="roll"]');
+    const ph = document.body.classList.contains('phone');
+    if (ph && btn) btn.click(); else { const sw = document.querySelector('#viewSw [data-mode="split"]'); if (sw) sw.click(); }
+    setTimeout(() => { if (MS.UI && MS.UI.centerRoll) MS.UI.centerRoll(); if (MS.UI && MS.UI.revealRange) MS.UI.revealRange(nt ? nt.start : sel.bar * 16, nt ? nt.pitch : 64); }, 220);
+  }
   function onClick(e) {
     const t = e.target.closest('button,[data-act]');
     if (!t) return;
@@ -400,6 +439,10 @@
       case 'ai-next': aiNext(); break;
       case 'retime': retime(sel.bar); break;
       case 'playhere': playHere(); break;
+      case 'playall': Tr.play({ from: 0, to: Store.totalSteps() }); break;
+      case 'tab': dockTab = t.dataset.k; dockOpen = true; saveDock(); renderDock(); break;
+      case 'toggledock': dockOpen = !dockOpen; saveDock(); renderDock(); break;
+      case 'toroll': toRoll(); break;
       default: break;
     }
   }
@@ -492,8 +535,42 @@
       surgical = null;
       schedule();
     });
+    initChips(); renderChips();
+    Store.on(() => renderChips());
     render();
     requestAnimationFrame(tick);
+  }
+
+  // ---- chip bài hát (Giọng · BPM · số ô) + chỉnh nhanh tại chỗ ----
+  function renderChips() {
+    const el = $('stChips'); if (!el) return;
+    const sg = song();
+    el.innerHTML = '<button class="sc" data-q="key"><b>' + T.pcName(sg.key, flats()) + ' ' + (sg.mode === 'minor' ? 'thứ' : 'trưởng') + '</b></button>' +
+      '<button class="sc" data-q="bpm">♩ <b>' + sg.bpm + '</b></button>' +
+      '<button class="sc" data-q="bars"><b>' + sg.bars + '</b> ô</button>';
+    const pop = $('qsPop');
+    if (pop && !pop.hidden) fillPop();
+  }
+  function fillPop() {
+    const sg = song(), pop = $('qsPop');
+    pop.querySelector('#qsKey').innerHTML = $('key').innerHTML;
+    pop.querySelector('#qsKey').value = sg.key;
+    pop.querySelector('#qsMode').value = sg.mode;
+    pop.querySelector('#qsBpm').textContent = sg.bpm;
+    pop.querySelector('#qsBars').textContent = sg.bars;
+  }
+  function initChips() {
+    const el = $('stChips'), pop = $('qsPop');
+    if (!el || !pop) return;
+    el.addEventListener('click', (e) => { const b = e.target.closest('.sc'); if (!b) return; pop.hidden = !pop.hidden; if (!pop.hidden) fillPop(); });
+    pop.addEventListener('click', (e) => {
+      const b = e.target.closest('[data-qs]'); if (!b) return;
+      const m = { keyDown: 'keyDown', keyUp: 'keyUp', bpmDown: 'bpmDown', bpmUp: 'bpmUp', barsDown: 'barsDown', barsUp: 'barsUp' }[b.dataset.qs];
+      if (m) $(m).click(); else if (b.dataset.qs === 'close') pop.hidden = true;
+    });
+    pop.querySelector('#qsKey').addEventListener('change', (e) => { $('key').value = e.target.value; $('key').dispatchEvent(new Event('change')); });
+    pop.querySelector('#qsMode').addEventListener('change', (e) => { $('mode').value = e.target.value; $('mode').dispatchEvent(new Event('change')); });
+    document.addEventListener('pointerdown', (e) => { if (!pop.hidden && !e.target.closest('#qsPop, #stChips')) pop.hidden = true; }, true);
   }
 
   MS.Studio = { init, render, select, aiFill, aiChords, setPitch, setChordAt, startEdit, commitEdit };

@@ -4,6 +4,25 @@
   const MS = (globalThis.MS = globalThis.MS || {});
   MS.CHANGELOG = [
     {
+      v: '0.3.1', date: '14/11/2026', title: 'Gọn hơn, có Hoàn tác / Làm lại',
+      items: [
+        'Nút ↶ Hoàn tác và ↷ Làm lại luôn hiện cạnh nút phát (màn Soạn và piano roll).',
+        'Piano roll trên điện thoại: bỏ thanh công cụ nâng cao; công cụ ít dùng gom vào menu ⋯ (lặp, metronome, trống, legato, chia đôi, đảo ngược, ép thang, zoom…).',
+        'Thanh −1/+1/−8/+8, lực nhấn, căn lưới, nhân đôi, xoá chỉ hiện khi bạn chọn nốt, nổi ngay trên vùng vẽ.',
+        'Vùng vẽ nốt rộng gần gấp đôi khi xoay ngang.',
+      ],
+    },
+    {
+      v: '0.3.0', date: '14/11/2026', title: 'Màn Soạn thoáng & đúng quy trình',
+      items: [
+        'Thanh công cụ dưới gom thành 3 tab (Nốt · Hợp âm · AI), chỉ hiện đúng thứ bạn cần; có nút thu gọn → thấy nhiều dòng lời hơn gấp đôi.',
+        'Nút vàng “Bước kế tiếp” tự đổi theo từng ô: viết lời → gợi ý nốt → gợi ý hợp âm → dòng tiếp → nghe cả bài.',
+        'Chip Giọng · BPM · số ô ngay trên bảng lời: chạm là chỉnh tại chỗ, không phải vào Cài đặt.',
+        'Nút 🎹 mở Piano roll đúng tại chữ đang chọn; ▶ nghe từ chữ đó.',
+        'Hàng nút phát gọn hơn, thẻ dòng lời sát hơn, chữ lời to rõ hơn.',
+      ],
+    },
+    {
       v: '0.2.3', date: '14/11/2026', title: 'Cập nhật không còn bị kẹt',
       items: [
         'Màn “Có phiên bản mới” có thanh tiến trình, hiện rõ bản cũ → bản mới và điểm mới.',
