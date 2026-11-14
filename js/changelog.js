@@ -4,6 +4,15 @@
   const MS = (globalThis.MS = globalThis.MS || {});
   MS.CHANGELOG = [
     {
+      v: '0.1.3', date: '14/11/2026', title: 'Hát để tạo melody & Piano roll Pro',
+      items: [
+        '🎤 Hát vào micro: bấm nút micro, đếm 4 nhịp, hát một câu — app dò cao độ, tách thành nốt, căn nhịp và đưa vào piano roll. Tự nhận giọng nếu bài còn trống.',
+        'Chỉnh ngay sau khi hát: ép vào thang âm, đổi lưới căn nhịp; rồi nghe lại, nhờ AI gợi ý tiếp hoặc viết lời cho melody.',
+        'Piano roll Pro: làn Lực nhấn (kéo cột để chỉnh, kéo ngang để vẽ), khoá thang âm, Legato, Chia đôi, Đảo ngược, Ép thang, Tự nhiên hoá, Lặp vùng, Vừa khung, Chọn hết.',
+        'Thanh công cụ nâng cao dùng được trên điện thoại (cuộn ngang, nút to dễ chạm).',
+      ],
+    },
+    {
       v: '0.1.2', date: '14/11/2026', title: 'Bảng “Lời & nốt” — không gian sáng tác chính',
       items: [
         'Một màn hình để gõ lời, chọn hợp âm và chọn nốt cho từng chữ hát — chạm là nghe ngay.',

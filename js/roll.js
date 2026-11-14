@@ -9,7 +9,7 @@
 
   const LO = 36, HI = 96;
   const ROWS = HI - LO + 1;
-  const KEYW = 64, RULER = 24, CHORD_H = 36, LYR_H = 42;
+  const KEYW = 64, RULER = 24, CHORD_H = 36, LYR_H = 42, VEL_H = 64;
   const BLACK = [1, 3, 6, 8, 10];
   const hook = (n, ...a) => MS.hooks && MS.hooks[n] && MS.hooks[n](...a);
   const SECTION_COLORS = { Intro: '#38bdf8', Verse: '#a78bfa', 'Pre-Chorus': '#f472b6', Chorus: '#fbbf24', Bridge: '#34d399', Outro: '#fb7185' };
@@ -49,7 +49,8 @@
 
     // ---------- hình học ----------
     get gridTop() { return RULER + CHORD_H; }
-    get gridH() { return this.viewH - this.gridTop - LYR_H; }
+    get velH() { return S.velLane ? VEL_H : 0; }
+    get gridH() { return this.viewH - this.gridTop - LYR_H - this.velH; }
     get scrollLeft() { return this.sc.scrollLeft; }
     get scrollTop() { return this.sc.scrollTop; }
     xOf(step) { return KEYW + step * this.zx - this.scrollLeft; }
@@ -80,7 +81,7 @@
     updateSpacer() {
       const total = Store.totalSteps();
       this.spacer.style.width = KEYW + total * this.zx + 140 + 'px';
-      this.spacer.style.height = ROWS * this.rowH + this.gridTop + LYR_H + 'px';
+      this.spacer.style.height = ROWS * this.rowH + this.gridTop + LYR_H + this.velH + 'px';
     }
     scrollToPitch(p) {
       this.sc.scrollTop = Math.max(0, (HI - p) * this.rowH - this.gridH / 2);
@@ -251,7 +252,58 @@
       this._drawRuler(c, song, total);
       this._drawChordLane(c, song, total);
       this._drawLyricLane(c, song, total);
+      this._drawVel(c, song);
       this._drawKeys(c, song, playing);
+    }
+
+    _velBw(n) { return Math.max(5, Math.min(n.dur * this.zx - 2, 14)); }
+    _drawVel(c, song) {
+      if (!this.velH) return;
+      const W = this.viewW, h = this.velH, y0 = this.gridTop + this.gridH, x0 = KEYW;
+      c.fillStyle = 'rgba(10,6,30,0.92)';
+      c.fillRect(0, y0, W, h);
+      c.fillStyle = 'rgba(255,255,255,0.16)';
+      c.fillRect(0, y0, W, 1);
+      c.save();
+      c.beginPath();
+      c.rect(x0, y0, W - x0, h);
+      c.clip();
+      [0.25, 0.5, 0.75, 1].forEach((f) => { c.fillStyle = 'rgba(255,255,255,0.06)'; c.fillRect(x0, y0 + h - 4 - (h - 10) * f, W - x0, 1); });
+      const s0 = Math.max(0, Math.floor(this.stepOf(x0)) - 1), s1 = Math.ceil(this.stepOf(W)) + 1;
+      for (let st = s0 - (s0 % 4); st <= s1; st += 4) { c.fillStyle = st % 16 === 0 ? 'rgba(255,255,255,0.16)' : 'rgba(255,255,255,0.05)'; c.fillRect(Math.round(this.xOf(st)), y0, 1, h); }
+      song.notes.forEach((n) => {
+        const x = this.xOf(n.start);
+        if (x > W || x < x0 - 20) return;
+        const bw = this._velBw(n), bh = Math.max(3, (h - 10) * n.vel / 127), sel = S.selection.has(n.id);
+        c.fillStyle = sel ? '#fbbf24' : `hsl(${262 + (1 - n.vel / 127) * 30},85%,64%)`;
+        rr(c, x + 1, y0 + h - 4 - bh, bw, bh, 2);
+        c.fill();
+        c.fillStyle = 'rgba(255,255,255,0.55)';
+        c.fillRect(x + 2, y0 + h - 4 - bh, Math.max(1, bw - 2), 2);
+      });
+      c.restore();
+      c.fillStyle = 'rgba(226,232,255,0.7)';
+      c.font = '600 11px "Be Vietnam Pro", system-ui, sans-serif';
+      c.textBaseline = 'middle';
+      c.fillText('Lực nhấn', 6, y0 + h / 2);
+    }
+    _velAt(h, first) {
+      const gb = this.gridTop + this.gridH, ph = this.velH - 10, notes = Store.song.notes, d = this.drag;
+      const vel = Math.max(5, Math.min(127, Math.round(127 * (gb + this.velH - 4 - h.y) / ph)));
+      const hit = notes.filter((n) => { const x = this.xOf(n.start); return h.x >= x - 3 && h.x <= x + this._velBw(n) + 3; });
+      if (first) d.sel = hit.length > 0 && hit.some((n) => S.selection.has(n.id)) && S.selection.size > 1;
+      const tgt = d.sel ? notes.filter((n) => S.selection.has(n.id)) : hit;
+      if (!tgt.length) return;
+      if (!d.moved) { Store.checkpoint(); d.moved = true; }
+      const ids = new Set(tgt.map((n) => n.id));
+      Store.update((s) => s.notes.forEach((n) => { if (ids.has(n.id)) n.vel = vel; }), 'vel');
+      if (!d.sel && first) { S.selection = new Set(hit.map((n) => n.id)); hook('selection'); }
+    }
+    _lockPitch(p) {
+      const s = Store.song;
+      if (!S.scaleLock || T.inScale(p, s.key, s.mode)) return p;
+      for (const d of [1, -1, 2, -2]) if (T.inScale(p + d, s.key, s.mode)) return p + d;
+      return p;
     }
 
     _drawRuler(c, song, total) {
@@ -524,6 +576,7 @@
       if (y < RULER) h.zone = x < KEYW ? 'corner' : 'ruler';
       else if (y < RULER + CHORD_H) { h.zone = x < KEYW ? 'corner' : 'chord'; if (x >= KEYW) { const ca = this._chordAt(x); if (ca) { h.chord = ca.chord; h.edge = ca.edge; } } }
       else if (y >= this.viewH - LYR_H) h.zone = x < KEYW ? 'corner' : 'lyric';
+      else if (this.velH && y >= this.gridTop + this.gridH) h.zone = x < KEYW ? 'corner' : 'vel';
       else if (x < KEYW) { h.zone = 'keys'; h.pitch = this.pitchOf(y); }
       else {
         h.zone = 'grid';
@@ -623,6 +676,12 @@
         this.dirty = true;
         return;
       }
+      if (h.zone === 'vel') {
+        this.drag = { type: 'vel', moved: false, sel: false };
+        this._velAt(h, true);
+        this.dirty = true;
+        return;
+      }
       if (h.zone === 'lyric') {
         const bar = Math.floor(h.step / 16);
         this.pendingLyric = bar >= 0 && bar < song.bars ? bar : null;
@@ -630,7 +689,9 @@
       }
       if (h.zone !== 'grid') return;
       S.selChord = null;
-      if (S.tool === 'hand') {
+      const rc = this.cv.getBoundingClientRect(), yy = e.clientY - rc.top;
+      const inVel = this.velH && yy >= this.gridTop + this.gridH && yy < this.viewH - LYR_H;
+      if (S.tool === 'hand' && !inVel) {
         this.drag = { type: 'pan', x: e.clientX, y: e.clientY, sl: this.sc.scrollLeft, st: this.sc.scrollTop };
         return;
       }
@@ -669,17 +730,18 @@
       }
       // vẽ nốt mới
       if (h.pitch < LO || h.pitch > HI) return;
+      const pitch = this._lockPitch(h.pitch);
       const start = Math.max(0, this.snapStep(h.step));
       if (start >= 128 * 16) return;
       const id = Store.uid();
       const dur = Math.max(1, S.noteLen);
       Store.commit((s) => {
-        s.notes.push({ id, start, dur, pitch: h.pitch, vel: 92 });
+        s.notes.push({ id, start, dur, pitch, vel: 92 });
         if (start + dur > s.bars * 16) s.bars = Math.min(128, Math.ceil((start + dur) / 16));
       }, 'add');
       S.selection = new Set([id]);
       hook('selection');
-      MS.Audio.preview(h.pitch, 0.35);
+      MS.Audio.preview(pitch, 0.35);
       this.drag = { type: 'create', id, start, startStep: h.step, moved: false };
       this.dirty = true;
     }
@@ -767,6 +829,8 @@
         });
         S.selection = sel;
         hook('selection');
+      } else if (d.type === 'vel') {
+        this._velAt(h, false);
       } else if (d.type === 'erase') {
         const na = h.zone === 'grid' ? this._noteAt(h.x, h.y) : null;
         if (na) Store.update((s) => { s.notes = s.notes.filter((n) => n.id !== na.note.id); }, 'erase');

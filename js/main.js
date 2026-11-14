@@ -36,6 +36,7 @@
     if (!had) MS.Store.replace(MS.demoSong());
     MS.UI.init();
     if (MS.Studio) MS.Studio.init();
+    if (MS.Voice) MS.Voice.init();
     if (!had) MS.UI.toast(matchMedia('(pointer: coarse)').matches ? 'Chào mừng! Đã nạp bài mẫu — chạm một chữ để chọn nốt, bấm ▶ để nghe.' : 'Chào mừng! Đã nạp bài mẫu — chạm một chữ để chọn nốt, Space để nghe.');
   }
   if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', boot);

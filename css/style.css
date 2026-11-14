@@ -415,7 +415,7 @@ body.phone.roll-full .app { padding: 0; }
 body.phone.roll-full .center {
   display: grid; position: fixed; inset: 0; z-index: 90; gap: 4px; align-items: center;
   padding: max(4px, env(safe-area-inset-top)) max(6px, env(safe-area-inset-right)) max(4px, env(safe-area-inset-bottom)) max(6px, env(safe-area-inset-left));
-  grid-template-columns: auto auto minmax(0, 1fr); grid-template-rows: auto minmax(0, 1fr);
+  grid-template-columns: auto auto minmax(0, 1fr); grid-template-rows: auto auto minmax(0, 1fr);
   background: linear-gradient(125deg, #0a0420, #1b0e47 40%, #0c3550);
 }
 body.phone.roll-full #rollClose { display: inline-flex; }
@@ -425,7 +425,7 @@ body.phone.roll-full .rollbar { min-width: 0; padding: 4px 6px; }
 body.phone.roll-full .roll-wrap { grid-column: 1 / -1; height: 100%; }
 body.phone.roll-full .statusbar { display: none; }
 @media (orientation: portrait) {
-  body.phone.roll-full .center { grid-template-rows: auto auto minmax(0, 1fr); }
+  body.phone.roll-full .center { grid-template-rows: auto auto auto minmax(0, 1fr); }
   body.phone.roll-full .rollbar { grid-column: 1 / -1; }
 }
 body.phone.roll-full #rollClose { min-width: 38px; width: 38px; height: 38px; min-height: 38px; padding: 0; justify-content: center; }
@@ -583,3 +583,37 @@ body:not(.phone) .dc { height: 28px; }
 body:not(.phone) .dk-info { gap: 6px; }
 body:not(.phone) .ibtn { height: 26px; }
 body:not(.phone) .st-top { padding: 5px 10px; }
+
+/* ---------- hát để tạo melody ---------- */
+.btn.voice svg { fill: #22d3ee; }
+.voice-panel[hidden] { display: none; }
+.voice-panel {
+  position: fixed; z-index: 2000; left: 50%; bottom: max(10px, env(safe-area-inset-bottom)); transform: translateX(-50%);
+  width: min(560px, calc(100vw - 16px)); max-height: calc(100dvh - 16px); overflow: auto; padding: 12px 14px 14px;
+  border-radius: 20px; display: flex; flex-direction: column; gap: 8px;
+  background: linear-gradient(160deg, rgba(34,20,86,.97), rgba(13,40,66,.97)); box-shadow: 0 20px 60px rgba(0,0,0,.6);
+}
+.vp-head { display: flex; align-items: center; justify-content: space-between; font-size: 15px; }
+.vp-body { display: flex; align-items: center; gap: 12px; }
+.vp-pitch { min-width: 92px; text-align: center; display: flex; flex-direction: column; }
+.vp-pitch span { font-size: 38px; font-weight: 800; line-height: 1; color: #67e8f9; text-shadow: 0 0 18px rgba(34,211,238,.6); }
+.vp-pitch small { font-size: 11px; opacity: .7; margin-top: 4px; }
+.vp-trace { flex: 1; height: 84px; min-width: 0; border-radius: 12px; background: rgba(0,0,0,.28); }
+.vp-meter { height: 6px; border-radius: 4px; background: rgba(255,255,255,.1); overflow: hidden; }
+.vp-meter i { display: block; height: 100%; width: 0; background: linear-gradient(90deg, #34d399, #fbbf24, #fb7185); transition: width .05s linear; }
+.vp-msg { font-size: 13px; line-height: 1.45; opacity: .92; min-height: 36px; }
+.vp-opts { display: flex; align-items: center; gap: 14px; flex-wrap: wrap; }
+.vp-count { opacity: .85; }
+.vp-actions { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+.vp-after { display: contents; }
+.vp-after[hidden], .vp-opts[hidden] { display: none; }
+.voice-panel[data-state="rec"] #vpGo { background: linear-gradient(180deg, #ff6b81, #c81e4a); color: #fff; animation: recpulse 1s ease-in-out infinite; }
+.voice-panel .btn { min-height: 42px; }
+@media (max-height: 520px) { .vp-trace { height: 56px; } .vp-pitch span { font-size: 28px; } }
+
+/* ---------- piano roll pro ---------- */
+.probar { gap: 6px; padding: 6px 12px; align-items: center; }
+.probar .btn.tiny { white-space: nowrap; }
+@media (max-width: 1020px) { .probar { flex-wrap: nowrap; overflow-x: auto; scrollbar-width: none; } .probar::-webkit-scrollbar { display: none; } .probar > * { flex: none; } }
+body.phone.roll-full .probar { grid-column: 1 / -1; padding: 3px 6px; min-width: 0; }
+body.phone.roll-full .probar .btn.tiny { min-height: 32px; height: 32px; padding: 0 11px; }

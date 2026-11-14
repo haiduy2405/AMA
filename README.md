@@ -37,3 +37,7 @@ Bộ sinh melody dựa trên luật (không phải mô hình AI): biến đổi 
 - AI: **Hoàn thiện câu** (điền các chữ còn thiếu), **Làm lại**, **Hợp âm**, **Dòng tiếp**. Nốt bám dấu thanh tiếng Việt (sắc/ngã lên, huyền/nặng xuống); chữ lệch dấu được tô vàng.
 - PC: ← → chọn chữ, ↑ ↓ đổi nốt, 1–7 chọn bậc âm, Enter sửa lời. Dán nhiều dòng để chia vào các ô liên tiếp.
 - Mỗi bản phát hành: thêm mục mới lên đầu `js/changelog.js` → `node tools/bump.js patch` → commit → push. Popup "Có gì mới" tự hiện một lần cho mỗi phiên bản.
+
+## v0.1.3 — Hát để tạo melody & Piano roll Pro
+- 🎤 **Hát → melody** (`js/voice.js`): micro → dò cao độ YIN → tách nốt → căn nhịp (1/16, 1/8, 1/4) → chèn tại con trỏ. Cần HTTPS hoặc localhost để dùng micro.
+- **Piano roll Pro**: làn lực nhấn, khoá thang âm, Legato, Chia đôi, Đảo ngược, Ép thang, Tự nhiên, Lặp vùng, Vừa khung (thanh `#proBar`).

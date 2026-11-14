@@ -18,6 +18,8 @@
     activePitches: new Map(), // pitch -> 'live' | 'play'
     loop: { on: false, start: 0, end: 0 },
     follow: true,
+    velLane: false,
+    scaleLock: false,
     stepInput: false,
     stepLen: 2,
     quant: 1, // lưới quantize khi thu

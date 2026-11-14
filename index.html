@@ -15,7 +15,7 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:wght@400;500;600;700;800&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="css/style.css?v=20261114.062834">
+<link rel="stylesheet" href="css/style.css?v=20261114.064625">
 <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Cdefs%3E%3ClinearGradient id='g' x1='0' y1='0' x2='1' y2='1'%3E%3Cstop offset='0' stop-color='%2322d3ee'/%3E%3Cstop offset='1' stop-color='%23a855f7'/%3E%3C/linearGradient%3E%3C/defs%3E%3Crect width='64' height='64' rx='16' fill='url(%23g)'/%3E%3Cpath d='M26 44V20l18-4v22' stroke='white' stroke-width='4' fill='none' stroke-linecap='round'/%3E%3Ccircle cx='22' cy='44' r='5' fill='white'/%3E%3Ccircle cx='40' cy='38' r='5' fill='white'/%3E%3C/svg%3E">
 </head>
 <body>
@@ -91,6 +91,7 @@
       <button class="btn icon primary big" id="btnPlay" title="Phát / Tạm dừng (Space)"><svg class="i-play" viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg><svg class="i-pause" viewBox="0 0 24 24"><path d="M7 5h4v14H7zM13 5h4v14h-4z"/></svg></button>
       <button class="btn icon" id="btnStop" title="Dừng"><svg viewBox="0 0 24 24"><path d="M7 7h10v10H7z"/></svg></button>
       <button class="btn icon rec" id="btnRec" title="Thu âm vào piano roll (R)"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="6"/></svg></button>
+      <button class="btn icon voice" id="btnVoice" title="Hát vào micro để tạo melody"><svg viewBox="0 0 24 24"><path d="M12 15a3 3 0 0 0 3-3V6a3 3 0 0 0-6 0v6a3 3 0 0 0 3 3zm5-3a5 5 0 0 1-10 0H5a7 7 0 0 0 6 6.9V21h2v-2.1A7 7 0 0 0 19 12h-2z"/></svg></button>
       <button class="btn icon toggle" id="btnLoop" title="Lặp vùng (B) — Shift+kéo trên thước để chọn vùng"><svg viewBox="0 0 24 24"><path d="M7 7h9l-2-2 1.4-1.4L20 8l-4.6 4.4L14 11l2-2H7v3H5V7zm10 10H8l2 2-1.4 1.4L4 16l4.6-4.4L10 13l-2 2h9v-3h2v5z"/></svg></button>
       <button class="btn icon toggle" id="btnMetro" title="Metronome (M)"><svg viewBox="0 0 24 24"><path d="M9 3h6l3 18H6L9 3zm2.2 2L9.5 15h5L12.8 5h-1.6zM12 8l5-4 1 1.2-5 4z"/></svg></button>
       <button class="btn icon toggle" id="btnDrums" title="Trống nhẹ"><svg viewBox="0 0 24 24"><path d="M4 10c0-2 3.6-3 8-3s8 1 8 3v6c0 2-3.6 3-8 3s-8-1-8-3v-6zm8-1c-3.3 0-6 .7-6 1s2.7 1 6 1 6-.7 6-1-2.7-1-6-1zM3 3l5 4-.8 1L2.3 4z"/></svg></button>
@@ -199,6 +200,19 @@
           <button class="btn tiny" id="btnUndo" title="Hoàn tác (Ctrl+Z)">↶</button>
           <button class="btn tiny" id="btnRedo" title="Làm lại (Ctrl+Y)">↷</button>
         </div>
+      </div>
+
+      <div class="rollbar glass probar" id="proBar" role="group" aria-label="Công cụ nâng cao">
+        <button class="btn tiny toggle" id="pVel" title="Làn lực nhấn — kéo cột để chỉnh, kéo ngang để vẽ">▥ Lực nhấn</button>
+        <button class="btn tiny toggle" id="pLock" title="Khoá thang âm — nốt vẽ mới tự rơi vào đúng thang">🔒 Thang âm</button>
+        <button class="btn tiny" id="pAll" title="Chọn tất cả (Ctrl+A)">Chọn hết</button>
+        <button class="btn tiny" id="pLegato" title="Kéo dài mỗi nốt tới nốt kế tiếp">Legato</button>
+        <button class="btn tiny" id="pChop" title="Chia mỗi nốt thành hai">Chia đôi</button>
+        <button class="btn tiny" id="pRev" title="Đảo ngược giai điệu theo thời gian">Đảo ngược</button>
+        <button class="btn tiny" id="pFix" title="Đưa nốt lệch vào đúng thang âm">Ép thang</button>
+        <button class="btn tiny" id="pHum" title="Làm lực nhấn tự nhiên hơn">Tự nhiên</button>
+        <button class="btn tiny" id="pLoop" title="Lặp vùng đang chọn">Lặp vùng</button>
+        <button class="btn tiny" id="pFit" title="Thu phóng vừa khung">Vừa khung</button>
       </div>
 
       <div class="roll-wrap glass" id="rollWrap">
@@ -363,19 +377,44 @@
   <button data-nav="settings"><i>⚙</i><span>Cài đặt</span></button>
 </nav>
 
-<script src="js/version.js?v=20261114.062834"></script>
-<script src="js/theory.js?v=20261114.062834"></script>
-<script src="js/store.js?v=20261114.062834"></script>
-<script src="js/uistate.js?v=20261114.062834"></script>
-<script src="js/generator.js?v=20261114.062834"></script>
-<script src="js/midifile.js?v=20261114.062834"></script>
-<script src="js/audio.js?v=20261114.062834"></script>
-<script src="js/input.js?v=20261114.062834"></script>
-<script src="js/roll.js?v=20261114.062834"></script>
-<script src="js/ui.js?v=20261114.062834"></script>
-<script src="js/studio.js?v=20261114.062834"></script>
-<script src="js/main.js?v=20261114.062834"></script>
-<script src="js/changelog.js?v=20261114.062834"></script>
-<script src="js/app.js?v=20261114.062834"></script>
+
+<div id="voicePanel" class="voice-panel glass" data-state="idle" hidden role="dialog" aria-label="Hát để tạo melody">
+  <div class="vp-head"><b>🎤 Hát để tạo melody</b><button class="btn tiny" id="vpClose" aria-label="Đóng">✕</button></div>
+  <div class="vp-body">
+    <div class="vp-pitch"><span id="vpNote">–</span><small id="vpHz"></small></div>
+    <canvas id="vpTrace" class="vp-trace"></canvas>
+  </div>
+  <div class="vp-meter"><i id="vpLevel"></i></div>
+  <div class="vp-msg" id="vpMsg"></div>
+  <div class="vp-opts" id="vpOpts" hidden>
+    <label class="vk-step"><input type="checkbox" id="vpScale" checked><span>Ép vào thang âm</span></label>
+    <label class="mini">Căn nhịp <select id="vpQ" class="field"><option value="1">1/16</option><option value="2" selected>1/8</option><option value="4">1/4</option></select></label>
+  </div>
+  <label class="vk-step vp-count"><input type="checkbox" id="vpCount" checked><span>Đếm 4 nhịp trước khi thu</span></label>
+  <div class="vp-actions">
+    <button class="btn gold" id="vpGo">⏺ Bắt đầu hát</button>
+    <span id="vpAfter" class="vp-after" hidden>
+      <button class="btn" id="vpPlay">▶ Nghe lại</button>
+      <button class="btn" id="vpSuggest">✨ Gợi ý tiếp</button>
+      <button class="btn" id="vpLyrics">🎼 Viết lời</button>
+      <button class="btn" id="vpDone">Xong</button>
+    </span>
+  </div>
+</div>
+<script src="js/version.js?v=20261114.064625"></script>
+<script src="js/theory.js?v=20261114.064625"></script>
+<script src="js/store.js?v=20261114.064625"></script>
+<script src="js/uistate.js?v=20261114.064625"></script>
+<script src="js/generator.js?v=20261114.064625"></script>
+<script src="js/midifile.js?v=20261114.064625"></script>
+<script src="js/audio.js?v=20261114.064625"></script>
+<script src="js/input.js?v=20261114.064625"></script>
+<script src="js/voice.js?v=20261114.064625"></script>
+<script src="js/roll.js?v=20261114.064625"></script>
+<script src="js/ui.js?v=20261114.064625"></script>
+<script src="js/studio.js?v=20261114.064625"></script>
+<script src="js/main.js?v=20261114.064625"></script>
+<script src="js/changelog.js?v=20261114.064625"></script>
+<script src="js/app.js?v=20261114.064625"></script>
 </body>
 </html>

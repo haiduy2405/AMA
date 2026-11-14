@@ -497,6 +497,79 @@
     }, 'move');
     return true;
   }
+  // ---------- lệnh chỉnh nốt nâng cao ----------
+  function target() { const ns = selNotes(); return ns.length ? ns : Store.song.notes; }
+  function needNotes() { if (!Store.song.notes.length) { toast('Chưa có nốt nào.'); return false; } return true; }
+  function legato() {
+    if (!needNotes()) return;
+    const ns = target(), ids = new Set(ns.map((n) => n.id));
+    const starts = [...new Set(Store.song.notes.map((n) => n.start))].sort((a, b) => a - b);
+    Store.commit((s) => s.notes.forEach((n) => {
+      if (!ids.has(n.id)) return;
+      const nx = starts.find((t) => t > n.start);
+      if (nx != null) n.dur = Math.max(1, nx - n.start);
+    }), 'legato');
+    toast('Legato: nối ' + ns.length + ' nốt.');
+  }
+  function chop() {
+    if (!needNotes()) return;
+    const ns = target().filter((n) => n.dur >= 2), ids = new Set(ns.map((n) => n.id));
+    if (!ns.length) { toast('Các nốt đã ngắn nhất, không chia thêm được.'); return; }
+    const add = [];
+    ns.forEach((n) => { const a = Math.floor(n.dur / 2); add.push({ id: Store.uid(), start: n.start + a, dur: n.dur - a, pitch: n.pitch, vel: Math.max(20, n.vel - 8) }); });
+    Store.commit((s) => { s.notes.forEach((n) => { if (ids.has(n.id)) n.dur = Math.floor(n.dur / 2); }); add.forEach((n) => s.notes.push(n)); }, 'chop');
+    S.selection = new Set([...ids, ...add.map((n) => n.id)]);
+    updateSelInfo(); roll.invalidate();
+  }
+  function reverseSel() {
+    if (!needNotes()) return;
+    const ns = target(), ids = new Set(ns.map((n) => n.id));
+    const a = Math.min(...ns.map((n) => n.start)), b = Math.max(...ns.map((n) => n.start + n.dur));
+    Store.commit((s) => s.notes.forEach((n) => { if (ids.has(n.id)) n.start = a + (b - (n.start + n.dur)); }), 'reverse');
+    toast('Đã đảo ngược ' + ns.length + ' nốt.');
+  }
+  function scaleFix() {
+    if (!needNotes()) return;
+    const ns = target(), ids = new Set(ns.map((n) => n.id)), song = Store.song;
+    let fixed = 0;
+    Store.commit((s) => s.notes.forEach((n) => {
+      if (!ids.has(n.id) || T.inScale(n.pitch, song.key, song.mode)) return;
+      for (const d of [1, -1, 2, -2]) if (T.inScale(n.pitch + d, song.key, song.mode)) { n.pitch += d; fixed++; break; }
+    }), 'scalefix');
+    toast(fixed ? 'Đã đưa ' + fixed + ' nốt vào đúng thang âm.' : 'Mọi nốt đều đã đúng thang âm.');
+  }
+  function humanize() {
+    if (!needNotes()) return;
+    const ids = new Set(target().map((n) => n.id));
+    Store.commit((s) => s.notes.forEach((n) => { if (ids.has(n.id)) n.vel = clamp(n.vel + Math.round((Math.random() - 0.5) * 18), 25, 127); }), 'vel');
+    toast('Đã làm lực nhấn tự nhiên hơn.');
+  }
+  function loopSel() {
+    if (!needNotes()) return;
+    const ns = target();
+    const a = Math.floor(Math.min(...ns.map((n) => n.start)) / 16) * 16, b = Math.ceil(Math.max(...ns.map((n) => n.start + n.dur)) / 16) * 16;
+    S.loop = { on: true, start: a, end: Math.min(b, Store.totalSteps()) };
+    $('btnLoop').classList.add('on');
+    roll.invalidate();
+    toast('Lặp ô ' + (a / 16 + 1) + '–' + Math.ceil(S.loop.end / 16) + '. Bấm ▶ để nghe.');
+  }
+  function fitView() {
+    const ns = Store.song.notes;
+    if (!ns.length) return;
+    const end = Math.max(...ns.map((n) => n.start + n.dur)), lo = Math.min(...ns.map((n) => n.pitch)), hi = Math.max(...ns.map((n) => n.pitch));
+    roll.zoom(Math.max(6, Math.min(60, (roll.viewW - 64 - 24) / end)) / roll.zx, 0);
+    roll.zoom(0, Math.max(9, Math.min(26, roll.gridH / (hi - lo + 6))) / roll.rowH);
+    roll.sc.scrollLeft = 0;
+    roll.scrollToPitch((lo + hi) / 2);
+    roll.invalidate();
+  }
+  function selectAll() { S.selection = new Set(Store.song.notes.map((n) => n.id)); updateSelInfo(); roll.invalidate(); }
+  function setVelLane(on) {
+    S.velLane = on;
+    $('pVel').classList.toggle('on', on);
+    roll.updateSpacer(); roll.resize(); roll.invalidate();
+  }
+
   function quantizeSel() {
     const ns = selNotes().length ? selNotes() : Store.song.notes;
     if (!ns.length) return;
@@ -738,6 +811,17 @@
     $('trOctDown').addEventListener('click', () => transpose(-12));
     $('trOctUp').addEventListener('click', () => transpose(12));
     $('btnQuant').addEventListener('click', quantizeSel);
+    $('pVel').addEventListener('click', () => setVelLane(!S.velLane));
+    $('pLock').addEventListener('click', () => { S.scaleLock = !S.scaleLock; $('pLock').classList.toggle('on', S.scaleLock); toast(S.scaleLock ? 'Khoá thang âm: nốt vẽ mới sẽ tự vào đúng thang.' : 'Đã mở khoá thang âm.'); });
+    $('pAll').addEventListener('click', selectAll);
+    $('pLegato').addEventListener('click', legato);
+    $('pChop').addEventListener('click', chop);
+    $('pRev').addEventListener('click', reverseSel);
+    $('pFix').addEventListener('click', scaleFix);
+    $('pHum').addEventListener('click', humanize);
+    $('pLoop').addEventListener('click', loopSel);
+    $('pFit').addEventListener('click', fitView);
+
     $('btnDup').addEventListener('click', duplicateSel);
     $('btnDel').addEventListener('click', deleteSel);
     $('btnUndo').addEventListener('click', () => Store.undo());

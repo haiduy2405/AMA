@@ -2,7 +2,7 @@
 const fs = require('fs'), path = require('path'), vm = require('vm'), assert = require('assert');
 const ctx = vm.createContext({ console, TextEncoder, setTimeout, clearTimeout, Math, JSON });
 ctx.globalThis = ctx;
-for (const f of ['theory', 'store', 'generator', 'midifile'])
+for (const f of ['theory', 'store', 'generator', 'midifile', 'voice'])
   vm.runInContext(fs.readFileSync(path.join(__dirname, '..', 'js', f + '.js'), 'utf8'), ctx, { filename: f + '.js' });
 const MS = ctx.MS, T = MS.Theory, G = MS.Generator;
 let pass = 0; const ok = (c, m) => { assert.ok(c, m); pass++; };
@@ -135,4 +135,33 @@ for (const mode of ['major', 'minor']) {
 // --- store ---
 { const S = MS.Store; S.replace({ bars: 4 }); S.commit((x) => x.notes.push({ id: 'a', start: 0, dur: 4, pitch: 60, vel: 90 })); ok(S.song.notes.length === 1, 'commit');
   S.undo(); ok(S.song.notes.length === 0, 'undo'); S.redo(); ok(S.song.notes.length === 1, 'redo'); }
+
+// --- giọng hát → melody ---
+{
+  const V = MS.Voice, sr = 44100;
+  const sine = (f, n, h) => { const b = new Float32Array(n); for (let i = 0; i < n; i++) { let v = 0; for (let k = 1; k <= (h || 1); k++) v += Math.sin(2 * Math.PI * f * k * i / sr) / k; b[i] = 0.3 * v; } return b; };
+  for (const f of [110, 146.83, 220, 261.63, 329.63, 440, 659.26, 880]) {
+    for (const h of [1, 3]) { const r = V.yin(sine(f, 2048, h), sr); ok(r.f > 0 && Math.abs(1200 * Math.log2(r.f / f)) < 15, 'yin ' + f + ' h' + h + ' → ' + r.f); }
+  }
+  ok(V.yin(new Float32Array(2048), sr).f === 0, 'im lặng không ra cao độ');
+  const hop = 0.023, mid = (m) => 440 * Math.pow(2, (m - 69) / 12);
+  // C4 E4 G4 E4 C4 ở 120 bpm: mỗi nốt 0.5s (= 4 bước), nghỉ 0.12s, có vibrato + vài khung nhiễu
+  const seq = [60, 64, 67, 64, 60];
+  const frames = []; let t = 0.4;
+  for (let i = 0; i < Math.round(0.4 / hop); i++) frames.push({ t: i * hop, f: 0, rms: 0.002 });
+  seq.forEach((m, ni) => {
+    for (let k = 0; k < Math.round(0.5 / hop); k++, t += hop) {
+      const vib = 1 + 0.008 * Math.sin(2 * Math.PI * 5.5 * k * hop);
+      const bad = k === 5 ? 2 : 1; // một khung lệch quãng tám
+      frames.push({ t, f: mid(m) * vib * bad, rms: 0.08 });
+    }
+    for (let k = 0; k < Math.round(0.12 / hop); k++, t += hop) frames.push({ t, f: 0, rms: 0.003 });
+  });
+  const res = V.toNotes(frames, { bpm: 120, key: 0, mode: 'major', q: 2, trimLead: false, origin: 0 });
+  ok(res.notes.length === 5, 'tách đủ 5 nốt: ' + res.notes.length);
+  ok(res.notes.map((n) => n.pitch).join() === seq.join(), 'đúng cao độ: ' + res.notes.map((n) => n.pitch));
+  ok(res.notes.every((n) => n.start % 2 === 0 && n.dur % 2 === 0), 'căn lưới 1/8');
+  ok(res.notes.every((n, k) => Math.abs(n.start - (0.4 + k * 0.62) / 0.125) <= 1.5), 'đúng nhịp: ' + res.notes.map((n) => n.start));
+}
+
 console.log(`OK — ${pass} assertions, ${trials} candidate phrases checked`);
