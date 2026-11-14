@@ -4,6 +4,15 @@
   const MS = (globalThis.MS = globalThis.MS || {});
   MS.CHANGELOG = [
     {
+      v: '0.2.3', date: '14/11/2026', title: 'Cập nhật không còn bị kẹt',
+      items: [
+        'Màn “Có phiên bản mới” có thanh tiến trình, hiện rõ bản cũ → bản mới và điểm mới.',
+        'Tải song song nên nhanh hơn trên mạng di động; ảnh/font lỗi không làm hỏng cả bản cập nhật.',
+        'Nếu cách thường bị kẹt, app tự xoá bộ nhớ đệm và nạp lại; luôn có nút Thử lại và Tải lại hoàn toàn.',
+        'Nền app đồng màu, không còn dải đen ở mép trên.',
+      ],
+    },
+    {
       v: '0.2.2', date: '14/11/2026', title: 'Hết nháy màn mở app & nút Bài mới',
       items: [
         'Sửa nháy ở màn hình mở app: ảnh nền được nạp trước và hiện mượt, bỏ các hiệu ứng gây giật.',

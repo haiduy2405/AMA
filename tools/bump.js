@@ -14,7 +14,14 @@ const version = arg === 'patch' ? `${ma}.${mi}.${pa + 1}` : arg === 'minor' ? `$
 const d = new Date();
 const p = (n) => String(n).padStart(2, '0');
 const build = `${d.getUTCFullYear()}${p(d.getUTCMonth() + 1)}${p(d.getUTCDate())}.${p(d.getUTCHours())}${p(d.getUTCMinutes())}${p(d.getUTCSeconds())}`;
-wr('version.json', JSON.stringify({ version, build }) + '\n');
+let notes = {};
+try { // lấy tiêu đề + vài ý của bản này từ js/changelog.js để màn "Có phiên bản mới" hiển thị
+  const ctx = { MS: {} }; ctx.globalThis = ctx;
+  new Function('globalThis', rd('js/changelog.js'))(ctx);
+  const e = (ctx.MS.CHANGELOG || []).find((x) => x.v === version);
+  if (e) notes = { title: e.title, items: e.items.slice(0, 4) };
+} catch (err) { /* không có ghi chú cũng được */ }
+wr('version.json', JSON.stringify({ version, build, ...notes }) + '\n');
 wr('js/version.js', `/* tự sinh bởi tools/bump.js — đừng sửa tay */\n(function () { const MS = (globalThis.MS = globalThis.MS || {}); MS.VERSION = '${version}'; MS.BUILD = '${build}'; })();\n`);
 let html = rd('index.html');
 html = html.replace(/((?:src|href)="(?:js|css)\/[\w.-]+\.(?:js|css))(?:\?v=[^"]*)?"/g, `$1?v=${build}"`);

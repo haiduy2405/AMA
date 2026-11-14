@@ -7,14 +7,32 @@ const ASSETS = ['./', 'index.html', 'css/style.css', 'css/fonts.css', 'fonts/be-
   'js/version.js', 'js/theory.js', 'js/store.js', 'js/uistate.js', 'js/generator.js', 'js/midifile.js',
   'js/audio.js', 'js/input.js', 'js/voice.js', 'js/roll.js', 'js/ui.js', 'js/studio.js', 'js/projects.js', 'js/main.js', 'js/changelog.js', 'js/app.js'];
 
+const OPTIONAL = /\.(woff2|webp)$/;           // font + ảnh: lỗi thì bỏ qua, không làm hỏng cả bản cài
+const bc = typeof BroadcastChannel !== 'undefined' ? new BroadcastChannel('ama-sw') : null;
+const say = (m) => { try { bc && bc.postMessage(m); } catch (e) { /* ok */ } };
+
 self.addEventListener('install', (e) => {
   e.waitUntil((async () => {
     const c = await caches.open(CACHE);
-    for (const a of ASSETS) {
-      const res = await fetch(a + (a.includes('?') ? '&' : '?') + 'v=' + encodeURIComponent(V), { cache: 'no-store' });
-      if (!res.ok) throw new Error('precache ' + a + ' ' + res.status);
-      await c.put(a, res);
+    const total = ASSETS.length;
+    let done = 0, i = 0, fatal = null;
+    say({ t: 'start', total, v: V });
+    async function worker() {
+      while (i < total && !fatal) {
+        const a = ASSETS[i++];
+        try {
+          const res = await fetch(a + (a.includes('?') ? '&' : '?') + 'v=' + encodeURIComponent(V), { cache: 'no-store' });
+          if (!res.ok) throw new Error(a + ' ' + res.status);
+          await c.put(a, res);
+        } catch (err) {
+          if (!OPTIONAL.test(a)) { fatal = err; say({ t: 'error', msg: String(err && err.message || err) }); return; }
+        }
+        say({ t: 'progress', done: ++done, total });
+      }
     }
+    await Promise.all([0, 1, 2, 3, 4, 5].map(worker));
+    if (fatal) throw fatal;
+    say({ t: 'installed', total });
     await self.skipWaiting();
   })());
 });

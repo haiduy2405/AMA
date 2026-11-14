@@ -74,31 +74,79 @@
     if (!r.ok) throw new Error(r.status);
     return r.json();
   }
+  function setStatus(t, bad) { const e = $('gateStatus'); e.textContent = t || ''; e.classList.toggle('bad', !!bad); }
+  function setProg(p) {
+    const pr = $('gateProg'); pr.hidden = false;
+    const v = Math.max(0, Math.min(100, Math.round(p * 100)));
+    $('gateBar').style.width = v + '%'; pr.setAttribute('aria-valuenow', v);
+  }
   function showGate(j) {
     if (gateShown) return;
     gateShown = true;
     try { MS.Store.saveNow && MS.Store.saveNow(); } catch (e) { /* ok */ }
-    $('gateText').textContent = 'Phiên bản ' + j.version + ' đã sẵn sàng (đang dùng ' + MS.VERSION + '). Bấm để tải bản mới — việc này mất vài giây.';
+    $('gateFrom').textContent = MS.VERSION; $('gateTo').textContent = j.version;
+    $('gateText').textContent = j.title ? j.title : 'Bản mới đã sẵn sàng — bấm để cập nhật, mất vài giây.';
+    if (Array.isArray(j.items) && j.items.length) {
+      const l = $('gateList'); l.hidden = false;
+      l.innerHTML = j.items.map((t) => '<li>' + String(t).replace(/[&<>]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;' }[c])) + '</li>').join('');
+    }
     $('updateGate').hidden = false;
     if (MS.Audio && MS.Audio.Transport && MS.Audio.Transport.stop) { try { MS.Audio.Transport.stop(); } catch (e) { /* ok */ } }
     $('gateBtn').onclick = () => apply(j);
+    $('gateHard').onclick = () => hardReload(j);
   }
-  async function apply(j) {
-    const btn = $('gateBtn');
-    btn.disabled = true; btn.textContent = 'Đang tải bản mới…';
-    const done = () => location.reload();
+  // đường lui: huỷ SW + xoá cache rồi nạp lại với tham số mới để chắc chắn lấy bản mới từ mạng
+  async function hardReload(j) {
+    setStatus('Đang xoá bộ nhớ đệm và nạp lại…');
     try {
-      if ('serviceWorker' in navigator) {
-        const reg = await navigator.serviceWorker.register('sw.js?v=' + encodeURIComponent(j.build));
-        await new Promise((res) => {
-          const t = setTimeout(res, 20000);
-          const w = reg.installing || reg.waiting || reg.active;
-          if (!w || w.state === 'activated') { clearTimeout(t); return res(); }
-          w.addEventListener('statechange', () => { if (w.state === 'activated') { clearTimeout(t); res(); } });
-        });
+      if ('serviceWorker' in navigator) for (const r of await navigator.serviceWorker.getRegistrations()) await r.unregister();
+      if (self.caches) for (const k of await caches.keys()) if (k.startsWith('muse-')) await caches.delete(k);
+    } catch (e) { /* vẫn nạp lại */ }
+    location.replace(location.pathname + '?u=' + encodeURIComponent((j && j.build) || Date.now()));
+  }
+  let applying = false;
+  async function apply(j) {
+    if (applying) return;
+    applying = true;
+    const btn = $('gateBtn');
+    btn.disabled = true; btn.textContent = 'Đang cập nhật…';
+    $('gateHard').hidden = true;
+    setProg(0.02); setStatus('Đang tải các tệp của bản mới…');
+    let bc = null, total = 0, failed = false;
+    const fail = (msg) => {
+      if (failed) return; failed = true; applying = false;
+      setStatus(msg, true); btn.disabled = false; btn.textContent = 'Thử lại'; $('gateHard').hidden = false;
+      try { bc && bc.close(); } catch (e) { /* ok */ }
+    };
+    try {
+      if (!('serviceWorker' in navigator)) return hardReload(j);
+      if (typeof BroadcastChannel !== 'undefined') {
+        bc = new BroadcastChannel('ama-sw');
+        bc.onmessage = (ev) => {
+          const m = ev.data || {};
+          if (m.t === 'start') total = m.total;
+          else if (m.t === 'progress') { setProg(0.05 + 0.85 * (m.done / (m.total || total || 1))); setStatus('Đang tải ' + m.done + '/' + (m.total || total) + ' tệp…'); }
+          else if (m.t === 'installed') { setProg(0.92); setStatus('Đang cài đặt…'); }
+          else if (m.t === 'error') fail('Tải thất bại (' + m.msg + '). Kiểm tra mạng rồi thử lại.');
+        };
       }
-    } catch (e) { /* tải thẳng */ }
-    done();
+      const reg = await navigator.serviceWorker.register('sw.js?v=' + encodeURIComponent(j.build));
+      const ok = await new Promise((res) => {
+        const t = setTimeout(() => res(false), 30000);
+        const w = reg.installing || reg.waiting || reg.active;
+        if (!w) return res(false);
+        if (w.state === 'activated' && reg.active && /v=/.test(reg.active.scriptURL) && reg.active.scriptURL.includes(j.build)) { clearTimeout(t); return res(true); }
+        w.addEventListener('statechange', () => {
+          if (w.state === 'activated') { clearTimeout(t); res(true); }
+          else if (w.state === 'redundant') { clearTimeout(t); res(false); }
+        });
+      });
+      if (failed) return;
+      if (!ok) { setStatus('Cách thường chưa được — đang thử cách mạnh hơn…'); return hardReload(j); }
+      setProg(1); setStatus('Xong! Đang khởi động lại…');
+      try { bc && bc.close(); } catch (e) { /* ok */ }
+      setTimeout(() => location.reload(), 350);
+    } catch (e) { fail('Không cập nhật được: ' + (e && e.message || e)); }
   }
   async function check(manual) {
     try {

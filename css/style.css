@@ -672,3 +672,23 @@ html { -webkit-text-size-adjust: 100%; text-size-adjust: 100%; }
 .splash-logo { animation: none; }
 .splash.ready .splash-tap { animation: none; opacity: 1; }
 .splash-load i { transition: width .25s ease; }
+
+
+/* ================= màn "Có phiên bản mới" ================= */
+html, body { background: #0a0420; }
+.gate-card.upd { padding: 0; width: 100%; max-width: 400px; overflow: hidden; text-align: left; }
+.upd-cover { height: 120px; background: linear-gradient(180deg, rgba(10,4,32,.1), rgba(20,10,61,1)), url(../assets/hero.webp) center/cover, linear-gradient(135deg, #3b1d8f, #0c3550); }
+.upd-body { padding: 0 22px 22px; margin-top: -36px; position: relative; }
+.upd-ver { display: inline-flex; align-items: center; gap: 8px; padding: 6px 14px; border-radius: 999px; font-weight: 800; font-size: 14px; background: rgba(10,4,32,.7); border: 1px solid rgba(255,255,255,.18); }
+.upd-ver span { color: var(--muted); } .upd-ver i { font-style: normal; color: var(--cyan); } .upd-ver b { color: #fff; }
+.upd h2 { margin: 10px 0 2px; font-size: 22px; }
+.upd #gateText { margin: 0 0 6px; color: var(--cyan); font-weight: 700; font-size: 14px; }
+.upd-list { margin: 6px 0 4px; padding-left: 20px; color: var(--text); font-size: 14px; display: grid; gap: 4px; }
+.upd-list[hidden], .upd-prog[hidden] { display: none; }
+.upd-prog { height: 8px; border-radius: 9px; background: rgba(255,255,255,.14); overflow: hidden; margin: 12px 0 4px; }
+.upd-prog i { display: block; height: 100%; width: 0; border-radius: 9px; background: linear-gradient(90deg, var(--cyan), var(--violet), var(--pink)); transition: width .25s ease; }
+.upd-status { min-height: 1.4em; margin: 2px 0 0; font-size: 13.5px; color: var(--muted); }
+.upd-status.bad { color: #fda4af; font-weight: 700; }
+.upd .btn { min-height: 52px; font-size: 16px; }
+.upd-link { display: block; width: 100%; margin-top: 10px; padding: 12px; background: none; border: 0; color: var(--cyan); font: inherit; font-size: 14px; text-decoration: underline; cursor: pointer; }
+.upd-link[hidden] { display: none; }
