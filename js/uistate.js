@@ -1,10 +1,10 @@
-/* Muse Studio — uistate.js : trạng thái giao diện dùng chung (không vào undo/redo) */
+/* Assistant Music AI — uistate.js : trạng thái giao diện dùng chung (không vào undo/redo) */
 (function () {
   'use strict';
   const G = globalThis;
   const MS = (G.MS = G.MS || {});
   MS.S = {
-    tool: 'draw', // draw | select | erase
+    tool: 'draw', // draw | select | hand | erase
     snap: 1, // bước (1 = 1/16)
     noteLen: 2, // độ dài nốt mới
     cursor: 0, // vị trí con trỏ / điểm bắt đầu phát (bước)

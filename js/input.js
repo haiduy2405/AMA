@@ -1,4 +1,4 @@
-/* Muse Studio — input.js : MIDI keyboard (Web MIDI), bàn phím máy tính làm đàn, thu âm, nhập từng nốt */
+/* Assistant Music AI — input.js : MIDI keyboard (Web MIDI), bàn phím máy tính làm đàn, thu âm, nhập từng nốt */
 (function () {
   'use strict';
   const G = globalThis;

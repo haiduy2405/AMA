@@ -1,4 +1,4 @@
-# Muse Studio — Xưởng sáng tác nhạc
+# Assistant Music AI — Trợ lý âm nhạc AI
 
 Webapp tiếng Việt giúp cùng sáng tác bài hát: **melody + hợp âm + lời**, nghe thử ngay khi làm, kết nối **MIDI keyboard**. Thuần HTML/CSS/JS, không cần build, không cần server, không dùng API trả phí.
 
@@ -25,3 +25,9 @@ Kiểm tra lý thuyết nhạc, nhận diện hợp âm, bộ sinh melody (nốt
 
 ## Ghi chú
 Bộ sinh melody dựa trên luật (không phải mô hình AI): biến đổi motif của bạn bằng lặp, chuyển bậc, đảo, biến tấu nhịp, kết câu. File `PROMPT.md` là prompt dùng để tạo dự án này.
+
+## Phiên bản & phát hành
+- Điện thoại: màn chính là các trang Trợ lý / Hợp âm / Lời / Cài đặt; bấm **Piano roll** để mở toàn màn hình ngang (2 ngón = cuộn + zoom, công cụ ✋ Cuộn).
+- PC: giữ chuột phải xoá, nhấp đúp hợp âm, phím tắt, MIDI keyboard.
+- Mỗi lần phát hành: `node tools/bump.js 2.1.0` → commit → push. App tự phát hiện (`version.json?t=…` bỏ qua cache) và hiện màn hình **bắt buộc cập nhật**.
+- `.nojekyll` giúp GitHub Pages bỏ bước Jekyll nên triển khai nhanh hơn.

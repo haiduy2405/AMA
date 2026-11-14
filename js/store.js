@@ -1,4 +1,4 @@
-/* Muse Studio — store.js : trạng thái bài hát, undo/redo, tự lưu */
+/* Assistant Music AI — store.js : trạng thái bài hát, undo/redo, tự lưu */
 (function () {
   'use strict';
   const G = globalThis;
@@ -57,6 +57,7 @@
 
   const Store = {
     uid,
+    saveNow() { clearTimeout(saveTimer); save(); },
     blank,
     normalize,
     get song() { return state.song; },

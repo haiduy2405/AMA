@@ -1,4 +1,4 @@
-/* Muse Studio — ui.js : gắn giao diện, transport, trợ lý đồng sáng tác, lời, MIDI, phím tắt */
+/* Assistant Music AI — ui.js : gắn giao diện, transport, trợ lý đồng sáng tác, lời, MIDI, phím tắt */
 (function () {
   'use strict';
   const G = globalThis;
@@ -555,7 +555,7 @@
     $('mode').value = s.mode;
     if (document.activeElement !== $('bpm')) $('bpm').value = s.bpm;
     if (document.activeElement !== $('bars')) $('bars').value = s.bars;
-    document.title = (s.title || 'Bài hát') + ' — Muse Studio';
+    document.title = (s.title || 'Bài hát') + ' — Assistant Music AI';
     $('btnUndo').disabled = !Store.canUndo;
     $('btnRedo').disabled = !Store.canRedo;
   }
@@ -700,7 +700,7 @@
     $('btnHelp').addEventListener('click', () => $('help').showModal());
 
     // --- thanh công cụ roll ---
-    const tools = { draw: 'toolDraw', select: 'toolSelect', erase: 'toolErase' };
+    const tools = { draw: 'toolDraw', select: 'toolSelect', hand: 'toolHand', erase: 'toolErase' };
     Object.keys(tools).forEach((k) => $(tools[k]).addEventListener('click', () => {
       S.tool = k;
       Object.keys(tools).forEach((j) => $(tools[j]).classList.toggle('on', j === k));

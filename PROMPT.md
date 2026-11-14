@@ -1,9 +1,9 @@
-# PROMPT — Muse Studio (webapp hỗ trợ sáng tác nhạc)
+# PROMPT — Assistant Music AI (webapp hỗ trợ sáng tác nhạc)
 
 > Prompt tối ưu đã dùng để sinh ra dự án này. Dán nguyên văn cho Claude Code / Claude để tái tạo hoặc mở rộng.
 
 ## 1. Vai trò & mục tiêu
-Bạn là senior front-end engineer kiêm nhạc sĩ/producer. Hãy xây **Muse Studio**: webapp tiếng Việt giúp người dùng **cùng sáng tác một bài hát hoàn chỉnh** (melody + hợp âm + lời), nghe thử ngay khi làm, chỉnh sửa tự do, có thể cắm **MIDI keyboard**.
+Bạn là senior front-end engineer kiêm nhạc sĩ/producer. Hãy xây **Assistant Music AI**: webapp tiếng Việt giúp người dùng **cùng sáng tác một bài hát hoàn chỉnh** (melody + hợp âm + lời), nghe thử ngay khi làm, chỉnh sửa tự do, có thể cắm **MIDI keyboard**.
 
 Người dùng: người sáng tác không chuyên đến bán chuyên; có thể biết hoặc không biết đọc nhạc. Ưu tiên: *ý tưởng → nghe được → sửa được* trong vài giây.
 

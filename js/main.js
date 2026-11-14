@@ -1,4 +1,4 @@
-/* Muse Studio — main.js : bài mẫu + khởi động */
+/* Assistant Music AI — main.js : bài mẫu + khởi động */
 (function () {
   'use strict';
   const MS = globalThis.MS;

@@ -1,4 +1,4 @@
-/* Muse Studio — theory.js : âm giai, hợp âm, nhận diện hợp âm, âm tiết tiếng Việt (thuần logic, không DOM) */
+/* Assistant Music AI — theory.js : âm giai, hợp âm, nhận diện hợp âm, âm tiết tiếng Việt (thuần logic, không DOM) */
 (function () {
   'use strict';
   const G = globalThis;

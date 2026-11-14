@@ -1,4 +1,4 @@
-/* Muse Studio — audio.js : synth Web Audio, reverb, trống nhẹ, metronome, transport có lookahead */
+/* Assistant Music AI — audio.js : synth Web Audio, reverb, trống nhẹ, metronome, transport có lookahead */
 (function () {
   'use strict';
   const G = globalThis;

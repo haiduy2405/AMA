@@ -1,4 +1,4 @@
-/* Muse Studio — generator.js : phân tích motif, sinh melody đồng sáng tác, gợi ý hợp âm (thuần logic) */
+/* Assistant Music AI — generator.js : phân tích motif, sinh melody đồng sáng tác, gợi ý hợp âm (thuần logic) */
 (function () {
   'use strict';
   const G = globalThis;

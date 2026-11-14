@@ -1,4 +1,4 @@
-/* Muse Studio — roll.js : piano roll + làn hợp âm + làn lời (canvas, cuộn bằng scroller native) */
+/* Assistant Music AI — roll.js : piano roll + làn hợp âm + làn lời (canvas, cuộn bằng scroller native) */
 (function () {
   'use strict';
   const G = globalThis;
@@ -479,6 +479,7 @@
         if (this.pendingLyric != null) { const b = this.pendingLyric; this.pendingLyric = null; this.editLyric(b); }
       });
       cv.addEventListener('dblclick', (e) => {
+        if (this.lastType !== 'mouse') return; // chỉ PC; điện thoại chạm 1 lần là chọn
         const h = this._hit(e);
         if (h.zone === 'chord' && h.chord) hook('chordEdit', h.chord);
       });
@@ -533,10 +534,51 @@
       return h;
     }
 
+    // ----- cảm ứng: 2 ngón = cuộn + zoom ngang -----
+    _touchDown(e) {
+      this.tp = this.tp || new Map();
+      this.tp.set(e.pointerId, { x: e.clientX, y: e.clientY });
+      if (this.tp.size === 2) {
+        const d = this.drag;
+        if (d && d.type === 'create' && !d.moved) { MS.Store.undo(); S.selection = new Set(); }
+        else if (d && d.moved) { /* giữ nguyên thay đổi đã làm */ }
+        this.drag = null;
+        const [a, b] = [...this.tp.values()];
+        this.pinch = { d: Math.hypot(a.x - b.x, a.y - b.y) || 1, mx: (a.x + b.x) / 2, my: (a.y + b.y) / 2 };
+        this.dirty = true;
+        return true;
+      }
+      return this.tp.size > 2;
+    }
+    _touchMove(e) {
+      const t = this.tp && this.tp.get(e.pointerId);
+      if (!t) return false;
+      t.x = e.clientX; t.y = e.clientY;
+      if (this.tp.size >= 2 && this.pinch) {
+        const [a, b] = [...this.tp.values()];
+        const d = Math.hypot(a.x - b.x, a.y - b.y) || 1, mx = (a.x + b.x) / 2, my = (a.y + b.y) / 2;
+        this.sc.scrollLeft -= mx - this.pinch.mx;
+        this.sc.scrollTop -= my - this.pinch.my;
+        const r = d / this.pinch.d;
+        if (Math.abs(r - 1) > 0.015) { this.zoom(r, 0); this.pinch.d = d; }
+        this.pinch.mx = mx; this.pinch.my = my;
+        this.dirty = true;
+        return true;
+      }
+      return false;
+    }
+    _touchUp(e) {
+      if (!this.tp) return;
+      this.tp.delete(e.pointerId);
+      if (this.tp.size < 2) this.pinch = null;
+    }
+
     _down(e) {
+      this.lastType = e.pointerType || 'mouse';
+      if (e.pointerType === 'touch' && this._touchDown(e)) return;
       this.cv.setPointerCapture(e.pointerId);
       const h = this._hit(e);
-      const right = e.button === 2;
+      const right = e.button === 2 && e.pointerType === 'mouse';
       if (!MS.Audio.ctx) MS.Audio.ensure();
       this._closeEditor(true);
       const song = Store.song;
@@ -588,6 +630,10 @@
       }
       if (h.zone !== 'grid') return;
       S.selChord = null;
+      if (S.tool === 'hand') {
+        this.drag = { type: 'pan', x: e.clientX, y: e.clientY, sl: this.sc.scrollLeft, st: this.sc.scrollTop };
+        return;
+      }
       if (right) {
         if (h.note) this._deleteNotes([h.note.id]);
         return;
@@ -639,13 +685,21 @@
     }
 
     _move(e) {
+      if (e.pointerType === 'touch' && this._touchMove(e)) return;
+      if (this.pinch) return;
       const h = this._hit(e);
       const d = this.drag;
+      if (d && d.type === 'pan') {
+        this.sc.scrollLeft = d.sl - (e.clientX - d.x);
+        this.sc.scrollTop = d.st - (e.clientY - d.y);
+        return;
+      }
       if (!d) {
+        if (e.pointerType === 'touch') return;
         this.hover = h;
         // con trỏ chuột
         let cur = 'default';
-        if (h.zone === 'grid') cur = S.tool === 'erase' ? 'not-allowed' : h.note ? (h.edge ? 'ew-resize' : 'grab') : S.tool === 'select' ? 'crosshair' : 'cell';
+        if (h.zone === 'grid') cur = S.tool === 'hand' ? 'grab' : S.tool === 'erase' ? 'not-allowed' : h.note ? (h.edge ? 'ew-resize' : 'grab') : S.tool === 'select' ? 'crosshair' : 'cell';
         else if (h.zone === 'chord') cur = h.chord ? (h.edge ? 'ew-resize' : 'grab') : S.armed ? 'copy' : 'pointer';
         else if (h.zone === 'ruler' || h.zone === 'keys' || h.zone === 'lyric') cur = 'pointer';
         this.cv.style.cursor = cur;
@@ -744,6 +798,7 @@
     }
 
     _up(e) {
+      if (e.pointerType === 'touch') this._touchUp(e);
       const d = this.drag;
       this.drag = null;
       try { this.cv.releasePointerCapture(e.pointerId); } catch (er) { /* ok */ }

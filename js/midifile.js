@@ -1,4 +1,4 @@
-/* Muse Studio — midifile.js : xuất .mid (SMF type 1) và bản chép hợp âm + lời (thuần logic) */
+/* Assistant Music AI — midifile.js : xuất .mid (SMF type 1) và bản chép hợp âm + lời (thuần logic) */
 (function () {
   'use strict';
   const G = globalThis;
@@ -54,7 +54,7 @@
     const tempo = Math.round(60000000 / song.bpm);
     const ks = keySig(song.key, song.mode);
     const t0 = [
-      meta(0, 0x03, utf8(song.title || 'Muse Studio')),
+      meta(0, 0x03, utf8(song.title || 'Assistant Music AI')),
       meta(0, 0x51, [(tempo >> 16) & 255, (tempo >> 8) & 255, tempo & 255]),
       meta(0, 0x58, [4, 2, 24, 8]),
       meta(0, 0x59, [ks.sf & 255, ks.mi]),
