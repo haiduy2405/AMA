@@ -429,3 +429,10 @@ body.phone.roll-full .statusbar { display: none; }
   body.phone.roll-full .rollbar { grid-column: 1 / -1; }
 }
 body.phone.roll-full #rollClose { min-width: 38px; width: 38px; height: 38px; min-height: 38px; padding: 0; justify-content: center; }
+
+/* toast nằm trên thanh điều hướng, không bị che */
+.toast { z-index: 3000; }
+@media (max-width: 1020px) {
+  .toast { bottom: calc(var(--nav-h, 58px) + env(safe-area-inset-bottom, 0px) + 22px); max-width: calc(100vw - 24px); font-size: 13px; }
+}
+body.roll-full .toast { bottom: max(14px, env(safe-area-inset-bottom)); }

@@ -1,2 +1,2 @@
 /* tự sinh bởi tools/bump.js — đừng sửa tay */
-(function () { const MS = (globalThis.MS = globalThis.MS || {}); MS.VERSION = '2.0.2'; MS.BUILD = '20261114.060754'; })();
+(function () { const MS = (globalThis.MS = globalThis.MS || {}); MS.VERSION = '2.0.3'; MS.BUILD = '20261114.060948'; })();
