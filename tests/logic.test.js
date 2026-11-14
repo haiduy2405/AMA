@@ -33,6 +33,36 @@ ok(G.evaluateMotif([], 0, 'major') === null, 'rỗng');
 ok(G.evaluateMotif(mk([[0, 4, 60]]), 0, 'major').items[0].ok === false, 'quá ít nốt bị nhắc');
 ok(G.evaluateMotif(mk([[0, 4, 64], [4, 4, 67], [8, 8, 72]]), 0, 'major', { phrase: true }).items[0].ok, 'phrase bỏ tiêu chí dài');
 
+// --- tiếng Việt: dấu thanh, chia nhịp, lời → nốt ---
+const tk = T.vnTokens('Chiều rơi trên phố nhỏ');
+ok(tk.map((x) => x.tone).join() === 'huyền,ngang,ngang,sắc,hỏi', 'tones: ' + tk.map((x) => x.tone).join());
+ok(T.vnTone('Việt') === 'nặng' && T.vnTone('mã') === 'ngã' && T.vnTone('ơi') === 'ngang' && T.vnTone('đường') === 'huyền', 'tone cases');
+for (let n = 1; n <= 16; n++) {
+  const r = G.lineRhythm(n);
+  ok(r.length === n, 'rhythm len ' + n);
+  ok(r.reduce((a, x) => a + x.dur, 0) === 16, 'rhythm sum ' + n);
+  ok(r.every((x, i) => x.dur >= 1 && (i === 0 ? x.start === 0 : x.start === r[i - 1].start + r[i - 1].dur)), 'rhythm contiguous ' + n);
+}
+for (const tot of [3, 5, 8, 11, 12]) for (let n = 1; n <= tot; n++) { const r = G.lineRhythm(n, tot); ok(r.reduce((a, x) => a + x.dur, 0) === tot && r.every((x) => x.dur >= 1), 'rhythm total ' + tot + '/' + n); }
+const LYR = ['Chiều rơi trên phố nhỏ', 'mình em đi qua', 'nghe tim mình khẽ gọi', 'Ngày mai nắng lên rồi', 'ai đó vẫn còn chờ', 'về nhà thôi nào em', 'Đường về nhà xa lắm', 'gió thổi qua mái hiên'];
+let agree = 0, tot = 0;
+LYR.forEach((line, li) => {
+  const tones = T.vnTokens(line).map((x) => x.tone);
+  const cad = li % 4 === 3 ? 'closed' : li % 2 ? 'open' : 'mid';
+  for (const seed of [1, 7, 42]) {
+    const degs = G.melodyForLine({ tones, key: 0, mode: 'major', chords: null, prevDeg: 2, cadence: cad, seed });
+    ok(degs.length === tones.length && degs.every((d) => d >= -2 && d <= 9), 'melody range');
+    const stable = cad === 'closed' ? [0] : cad === 'open' ? [4, 1] : [2, 4, 0];
+    ok(stable.includes(T.mod(degs[degs.length - 1], 7)), 'cadence ' + cad);
+    for (let i = 1; i < degs.length; i++) for (const [set, dir] of [[['sắc', 'ngã'], 1], [['huyền', 'nặng'], -1]]) if (set.includes(tones[i])) { tot++; if (Math.sign(degs[i] - degs[i - 1]) !== -dir) agree++; }
+    const leaps = degs.slice(1).map((d, i) => Math.abs(d - degs[i]));
+    ok(Math.max(...leaps, 0) <= 4, 'không nhảy quá xa');
+  }
+});
+ok(agree / tot >= 0.8, 'giai điệu bám dấu thanh ' + (agree / tot).toFixed(2));
+const fx = G.melodyForLine({ tones: ['ngang', 'sắc', 'huyền'], key: 0, mode: 'major', fixed: [4, null, null], prevDeg: 0, cadence: 'closed', seed: 3 });
+ok(fx[0] === 4, 'giữ nốt đã có');
+
 // --- generator ---
 function song(key, mode, bars, motif) {
   const s = MS.Store.normalize({ key, mode, bars, notes: motif || [] });

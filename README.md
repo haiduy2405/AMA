@@ -31,3 +31,9 @@ Bộ sinh melody dựa trên luật (không phải mô hình AI): biến đổi 
 - PC: giữ chuột phải xoá, nhấp đúp hợp âm, phím tắt, MIDI keyboard.
 - Mỗi lần phát hành: `node tools/bump.js patch` (0.1.1 → 0.1.2 → …) hoặc `minor` (→ 0.2.0) → commit → push. App tự phát hiện (`version.json?t=…` bỏ qua cache) và hiện màn hình **bắt buộc cập nhật**.
 - `.nojekyll` giúp GitHub Pages bỏ bước Jekyll nên triển khai nhanh hơn.
+
+## Bảng "Lời & nốt" (không gian sáng tác chính)
+- Mỗi ô nhịp = một dòng lời; tiếng thứ *i* ↔ nốt thứ *i* trong ô. Chạm một chữ → chọn nốt (gợi ý nốt thuộc hợp âm), chọn hợp âm tại chữ đó, đổi độ dài; nghe ngay.
+- AI: **Hoàn thiện câu** (điền các chữ còn thiếu), **Làm lại**, **Hợp âm**, **Dòng tiếp**. Nốt bám dấu thanh tiếng Việt (sắc/ngã lên, huyền/nặng xuống); chữ lệch dấu được tô vàng.
+- PC: ← → chọn chữ, ↑ ↓ đổi nốt, 1–7 chọn bậc âm, Enter sửa lời. Dán nhiều dòng để chia vào các ô liên tiếp.
+- Mỗi bản phát hành: thêm mục mới lên đầu `js/changelog.js` → `node tools/bump.js patch` → commit → push. Popup "Có gì mới" tự hiện một lần cho mỗi phiên bản.

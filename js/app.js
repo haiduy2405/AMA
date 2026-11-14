@@ -44,7 +44,7 @@
     try { if (MS.Audio) { MS.Audio.ensure(); if (MS.Audio.ctx && MS.Audio.ctx.state === 'suspended') MS.Audio.ctx.resume(); } } catch (e) { /* ok */ }
     lockPortrait(); // điện thoại mặc định màn dọc; chỉ piano roll mới xoay ngang
     splash.classList.add('go');
-    setTimeout(() => { splash.hidden = true; if (MS.UI && MS.UI.centerRoll) MS.UI.centerRoll(); }, 650);
+    setTimeout(() => { splash.hidden = true; if (MS.UI && MS.UI.centerRoll) MS.UI.centerRoll(); if (MS.afterSplash) MS.afterSplash(); }, 650);
   }
   splash.addEventListener('pointerup', start);
   splash.addEventListener('keydown', (e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); start(); } });
@@ -117,6 +117,36 @@
     if ('serviceWorker' in navigator) navigator.serviceWorker.register('sw.js?v=' + encodeURIComponent(MS.BUILD)).catch(() => {});
   }
 
+
+  // ---------- popup "Có gì mới" ----------
+  const SEEN_KEY = 'ama-seen-version';
+  const li = (items) => items.map((t) => '<li>' + String(t).replace(/[&<>]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;' }[c])) + '</li>').join('');
+  function showWhatsNew(manual) {
+    const log = MS.CHANGELOG || [];
+    if (!log.length) return;
+    const cur = log.find((x) => x.v === MS.VERSION) || log[0];
+    $('wnBadge').textContent = 'v' + cur.v;
+    $('wnTitle').textContent = manual ? 'Có gì mới & lịch sử' : 'Đã cập nhật lên v' + cur.v;
+    $('wnSub').textContent = cur.title + ' · ' + cur.date;
+    $('wnList').innerHTML = li(cur.items);
+    const old = log.filter((x) => x !== cur);
+    $('wnHist').hidden = !old.length;
+    $('wnHist').open = !!manual;
+    $('wnHistList').innerHTML = old.map((x) => '<div class="wn-ver"><b>v' + x.v + '</b> <span>' + x.date + '</span><em>' + x.title + '</em><ul>' + li(x.items) + '</ul></div>').join('');
+    $('whatsNew').hidden = false;
+    $('wnClose').textContent = manual ? 'Đóng' : 'Bắt đầu sáng tác';
+  }
+  function closeWhatsNew() {
+    $('whatsNew').hidden = true;
+    try { localStorage.setItem(SEEN_KEY, MS.VERSION); } catch (e) { /* ok */ }
+  }
+  $('wnClose').addEventListener('click', closeWhatsNew);
+  $('btnWhatsNew').addEventListener('click', () => { closeSheetsForPopup(); showWhatsNew(true); });
+  function closeSheetsForPopup() { /* popup nằm trên cùng, không cần đóng ngăn */ }
+  let seenVer = null;
+  try { seenVer = localStorage.getItem(SEEN_KEY); } catch (e) { /* ok */ }
+  MS.afterSplash = function () { if (seenVer !== MS.VERSION && !gateShown) showWhatsNew(false); };
+
   // ---------- bố cục: desktop / gọn (máy tính bảng) / điện thoại ----------
   const compactMQ = matchMedia('(max-width: 1020px)');
   const phoneMQ = matchMedia('(max-width: 700px), (pointer: coarse) and (max-height: 520px)');
@@ -139,32 +169,40 @@
     else if (ph && full) center.insertBefore(dock.el, rollbar);
     else center.appendChild(dock.el);
   }
-  const left = document.querySelector('.side.left'), right = document.querySelector('.side.right'), settings = $('settings');
-  const panels = [left, right, settings];
+  const left = document.querySelector('.side.left'), right = document.querySelector('.side.right'), settings = $('settings'), studio = $('studio');
+  const panels = [left, right, settings, studio];
+  const panelOf = (name) => (name === 'chords' ? left : name === 'settings' ? settings : name === 'studio' ? studio : right);
+  const clickTab = (name) => { if (name === 'assist' || name === 'lyrics') { const t = document.querySelector('.tab[data-tab="' + name + '"]'); if (t) t.click(); } };
   function setNav(name) { document.querySelectorAll('#bottomNav button').forEach((b) => b.classList.toggle('on', b.dataset.nav === name)); }
+  // chế độ xem ở màn hình rộng: studio | split | roll
+  let viewMode = 'split';
+  function setMode(m) {
+    viewMode = m;
+    ['studio', 'split', 'roll'].forEach((k) => center.classList.toggle('mode-' + k, k === m));
+    document.querySelectorAll('#viewSw [data-mode]').forEach((b) => b.classList.toggle('on', b.dataset.mode === m));
+    setTimeout(() => { if (MS.UI && MS.UI.centerRoll && m !== 'studio') MS.UI.centerRoll(); window.dispatchEvent(new Event('resize')); }, 60);
+  }
+  document.querySelectorAll('#viewSw [data-mode]').forEach((b) => b.addEventListener('click', () => setMode(b.dataset.mode)));
   function closeSheets() {
-    if (body.classList.contains('phone')) return showPage('assist');
-    panels.forEach((x) => x.classList.remove('open'));
+    if (body.classList.contains('phone')) return showPage('studio');
+    [left, right, settings].forEach((x) => x.classList.remove('open'));
     settings.hidden = true; $('sheetBack').hidden = true;
-    setNav('assist'); setNav(null);
-    document.querySelector('#bottomNav [data-nav="roll"]').classList.add('on');
+    setNav(viewMode === 'roll' ? 'roll' : 'studio');
   }
   function showPage(name) {
-    panels.forEach((x) => x.classList.remove('open'));
+    [left, right, settings].forEach((x) => x.classList.remove('open'));
+    studio.classList.toggle('open', name === 'studio');
     settings.hidden = false;
-    const el = name === 'chords' ? left : name === 'settings' ? settings : right;
-    if (name === 'assist' || name === 'lyrics') { const t = document.querySelector('.tab[data-tab="' + name + '"]'); if (t) t.click(); }
-    el.classList.add('open');
+    if (name !== 'studio') { clickTab(name); panelOf(name).classList.add('open'); }
     setNav(name);
   }
   function openSheet(name) {
     if (body.classList.contains('phone')) return showPage(name);
-    const el = name === 'chords' ? left : name === 'settings' ? settings : right;
-    const tab = document.querySelector('.tab.on');
-    const same = el.classList.contains('open') && ((name !== 'assist' && name !== 'lyrics') || (tab && tab.dataset.tab === name));
-    if (same) return closeSheets();
-    panels.forEach((x) => x.classList.remove('open'));
-    if (name === 'assist' || name === 'lyrics') { const t = document.querySelector('.tab[data-tab="' + name + '"]'); if (t) t.click(); }
+    if (name === 'studio') { setMode(viewMode === 'roll' ? 'split' : viewMode); closeSheets(); return; }
+    const el = panelOf(name);
+    if (el.classList.contains('open')) return closeSheets();
+    [left, right, settings].forEach((x) => x.classList.remove('open'));
+    clickTab(name);
     settings.hidden = false; el.classList.add('open'); $('sheetBack').hidden = false;
     setNav(name);
   }
@@ -201,14 +239,17 @@
       if (c) m.to().appendChild(m.el); else m.ph.parentNode.insertBefore(m.el, m.ph.nextSibling);
     });
     placeDock();
+    const lay = document.querySelector('.layout');
+    if (ph) { if (studio.parentNode !== lay) lay.insertBefore(studio, lay.firstChild); }
+    else if (studio.parentNode !== center) center.insertBefore(studio, rollbar);
     try { if (MS.UI && MS.UI.renderMotif) MS.UI.renderMotif(); } catch (e) { /* chưa khởi tạo */ }
     $('navRollLbl').textContent = ph ? 'Piano roll' : 'Soạn';
-    if (ph) showPage(right.classList.contains('open') || !panels.some((x) => x.classList.contains('open')) ? 'assist' : left.classList.contains('open') ? 'chords' : 'settings');
-    else { panels.forEach((x) => x.classList.remove('open')); settings.hidden = true; $('sheetBack').hidden = true; }
+    if (ph) showPage(left.classList.contains('open') ? 'chords' : right.classList.contains('open') ? 'assist' : settings.classList.contains('open') ? 'settings' : 'studio');
+    else { panels.forEach((x) => x.classList.remove('open')); settings.hidden = true; $('sheetBack').hidden = true; setMode(viewMode); setNav('studio'); }
   }
   document.querySelectorAll('#bottomNav button').forEach((b) => b.addEventListener('click', () => {
     const n = b.dataset.nav;
-    if (n === 'roll') { if (body.classList.contains('phone')) openRoll(); else closeSheets(); } else openSheet(n);
+    if (n === 'roll') { if (body.classList.contains('phone')) openRoll(); else { setMode('roll'); closeSheets(); } } else openSheet(n);
   }));
   $('sheetBack').addEventListener('pointerdown', closeSheets);
   // chọn hợp âm xong trong ngăn thì thu ngăn lại để đặt lên làn hợp âm (máy tính bảng)
@@ -310,6 +351,4 @@
   document.addEventListener('selectstart', (e) => { if (!allowSel(e.target)) e.preventDefault(); });
   document.addEventListener('contextmenu', (e) => { if (isTouch || !allowSel(e.target)) { if (isTouch || e.target.closest('.roll-wrap')) e.preventDefault(); } });
   ['gesturestart', 'gesturechange'].forEach((n) => document.addEventListener(n, (e) => e.preventDefault()));
-  let lastTap = 0;
-  document.addEventListener('touchend', (e) => { const n = Date.now(); if (n - lastTap < 320 && !allowSel(e.target)) e.preventDefault(); lastTap = n; }, { passive: false });
 })();

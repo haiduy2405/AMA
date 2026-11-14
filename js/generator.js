@@ -160,6 +160,65 @@
     return { score, grade, level, items, bars, count: n, range, maxLeap, closed: stable };
   }
 
+
+  // ---------- lời → nốt (tiếng Việt, có dấu thanh) ----------
+  // Chia 16 bước của một ô cho n chữ: chữ cuối kéo dài hơn, chữ đầu hơi nhấn.
+  function lineRhythm(n, total) {
+    total = total || 16;
+    if (n <= 0) return [];
+    const unit = total % 2 === 0 && n <= total / 2 ? 2 : 1, slots = total / unit;
+    const m = Math.min(n, slots);
+    const w = [];
+    for (let i = 0; i < m; i++) w.push(1 + (i === m - 1 ? 0.9 : 0) + (i === 0 ? 0.25 : 0) + (i % 2 === 0 ? 0.12 : 0));
+    const sum = w.reduce((a, b) => a + b, 0);
+    const a = w.map((x) => Math.max(1, Math.floor((x / sum) * slots)));
+    let left = slots - a.reduce((x, y) => x + y, 0);
+    const order = w.map((x, i) => [x / sum * slots - Math.floor(x / sum * slots), i]).sort((p, q) => q[0] - p[0]);
+    for (let k = 0; left > 0; k++, left--) a[order[k % m][1]]++;
+    for (let k = m - 1; left < 0 && k >= 0; k--) while (a[k] > 1 && left < 0) { a[k]--; left++; }
+    const out = [];
+    let t = 0;
+    for (let i = 0; i < n; i++) {
+      if (i < m) { out.push({ start: t, dur: a[i] * unit }); t += a[i] * unit; } else out.push({ start: total, dur: 1 });
+    }
+    return out;
+  }
+
+  const TONE_UP = { sắc: 1, ngã: 1 }, TONE_DOWN = { huyền: 1, nặng: 1 };
+  // Chọn bậc âm cho từng chữ. opts: tones[], chords[] (hợp âm tại từng chữ hoặc null), fixed[] (bậc đã có hoặc null),
+  // prevDeg, key, mode, cadence 'closed'|'open'|'mid', seed
+  function melodyForLine(o) {
+    const n = o.tones.length, r = rng(o.seed || 1);
+    const LO_D = -2, HI_D = 9;
+    const out = [];
+    let cur = o.prevDeg == null ? 2 : o.prevDeg;
+    const stableSet = o.cadence === 'closed' ? [0] : o.cadence === 'open' ? [4, 1] : [2, 4, 0];
+    for (let i = 0; i < n; i++) {
+      const fx = o.fixed && o.fixed[i];
+      if (fx != null) { out.push(fx); cur = fx; continue; }
+      const tone = o.tones[i], ch = o.chords && o.chords[i];
+      const pcs = ch ? T.chordPcs(ch) : null;
+      const strong = i === 0 || i === n - 1 || i % 2 === 0;
+      let best = null, bs = -1e9;
+      for (let d = Math.max(LO_D, cur - 3); d <= Math.min(HI_D, cur + 3); d++) {
+        const dl = d - cur, ad = Math.abs(dl);
+        let sc = -0.55 * Math.pow(Math.max(0, ad - 1), 1.35) - 0.12 * ad;
+        if (TONE_UP[tone]) sc += dl > 0 ? 3 : dl === 0 ? 0 : -3.2;
+        else if (TONE_DOWN[tone]) sc += dl < 0 ? 3 : dl === 0 ? 0.4 : -3.2;
+        else if (tone === 'hỏi') sc += dl < 0 ? 2 : dl === 0 ? 0.8 : -2;
+        else sc += dl === 0 ? 1.2 : ad === 1 ? 0.5 : -0.4;
+        const inChord = pcs && pcs.includes(T.mod(T.degToPitch(d, o.key, o.mode), 12));
+        if (inChord) sc += strong ? 1.6 : 0.5;
+        if (i === n - 1) sc += stableSet.includes(T.mod(d, 7)) ? 4 + (T.mod(d, 7) === stableSet[0] ? 1 : 0) : -3;
+        sc += (r() - 0.5) * 0.7;
+        if (d > 7 || d < -1) sc -= 0.8;
+        if (sc > bs) { bs = sc; best = d; }
+      }
+      out.push(best); cur = best;
+    }
+    return out;
+  }
+
   // ---------- biến đổi ô nhịp ----------
   function shiftBar(bar, k) {
     const b = cloneBar(bar);
@@ -655,5 +714,5 @@
     return out;
   }
 
-  MS.Generator = { rng, generate, autoComplete, suggestChords, applyProgression, analyzeMotif, evaluateMotif, suggestStart, notesToBar, VARIANTS };
+  MS.Generator = { rng, generate, autoComplete, suggestChords, applyProgression, analyzeMotif, evaluateMotif, lineRhythm, melodyForLine, suggestStart, notesToBar, VARIANTS };
 })();

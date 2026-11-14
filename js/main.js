@@ -35,7 +35,8 @@
     const had = MS.Store.load();
     if (!had) MS.Store.replace(MS.demoSong());
     MS.UI.init();
-    if (!had) MS.UI.toast('Chào mừng! Đã nạp bài mẫu — bấm Space để nghe, hoặc “Mới” để bắt đầu bài của bạn.');
+    if (MS.Studio) MS.Studio.init();
+    if (!had) MS.UI.toast(matchMedia('(pointer: coarse)').matches ? 'Chào mừng! Đã nạp bài mẫu — chạm một chữ để chọn nốt, bấm ▶ để nghe.' : 'Chào mừng! Đã nạp bài mẫu — chạm một chữ để chọn nốt, Space để nghe.');
   }
   if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', boot);
   else boot();

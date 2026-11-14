@@ -5,7 +5,7 @@ const CACHE = 'muse-' + V;
 const ASSETS = ['./', 'index.html', 'css/style.css', 'manifest.webmanifest', 'version.json',
   'icons/icon-192.png', 'icons/icon-512.png', 'icons/maskable-512.png',
   'js/version.js', 'js/theory.js', 'js/store.js', 'js/uistate.js', 'js/generator.js', 'js/midifile.js',
-  'js/audio.js', 'js/input.js', 'js/roll.js', 'js/ui.js', 'js/main.js', 'js/app.js'];
+  'js/audio.js', 'js/input.js', 'js/roll.js', 'js/ui.js', 'js/studio.js', 'js/main.js', 'js/changelog.js', 'js/app.js'];
 
 self.addEventListener('install', (e) => {
   e.waitUntil((async () => {

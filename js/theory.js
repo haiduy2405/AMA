@@ -151,12 +151,23 @@
     return res;
   }
 
-  // đếm âm tiết tiếng Việt: mỗi tiếng (tách bằng khoảng trắng / dấu câu) = 1 âm tiết
-  function vnSyllables(text) {
-    if (!text) return 0;
+  // tách lời thành các tiếng (âm tiết) + nhận diện dấu thanh
+  const TONE_MARK = { '\u0300': 'huyền', '\u0301': 'sắc', '\u0309': 'hỏi', '\u0303': 'ngã', '\u0323': 'nặng' };
+  function vnTone(word) {
+    const d = String(word).normalize('NFD');
+    for (const ch of d) if (TONE_MARK[ch]) return TONE_MARK[ch];
+    return 'ngang';
+  }
+  function vnTokens(text) {
+    if (!text) return [];
     return text
       .split(/[\s,.;:!?…"“”()\-–—/]+/)
-      .filter((t) => /\p{L}/u.test(t)).length;
+      .filter((t) => /\p{L}/u.test(t))
+      .map((t) => ({ text: t, tone: vnTone(t) }));
+  }
+  // đếm âm tiết tiếng Việt: mỗi tiếng (tách bằng khoảng trắng / dấu câu) = 1 âm tiết
+  function vnSyllables(text) {
+    return vnTokens(text).length;
   }
 
   // đoán giọng từ danh sách nốt
@@ -202,6 +213,6 @@
   MS.Theory = {
     NAMES_S, NAMES_F, SCALES, Q, DETECT_ORDER, PROGRESSIONS,
     mod, useFlats, pcName, noteName, scaleOf, tonicBase, degToPitch, pitchToDeg, inScale,
-    diatonicChords, chordPcs, chordName, voicing, detectChord, vnSyllables, guessKey,
+    diatonicChords, chordPcs, chordName, voicing, detectChord, vnSyllables, vnTokens, vnTone, guessKey,
   };
 })();
