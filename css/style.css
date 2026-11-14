@@ -780,3 +780,18 @@ body.phone.roll-full .vkb-keys { height: clamp(52px, 18dvh, 96px); }
 body.phone.roll-full .more-menu { top: calc(env(safe-area-inset-top, 0px) + 54px); }
 body.phone.roll-full .rollbar .tl { display: none; }
 body.phone.roll-full .rollbar .seg-b, body.phone.roll-full #btnVkb { min-width: 44px; padding: 0 10px; }
+
+
+/* ================= v0.3.2: chế độ "nhẹ" cho điện thoại/máy bảng — hết nháy, hết mất khung =================
+   Nguyên nhân nháy trên Android: nhiều lớp backdrop-filter chồng lên các quả cầu mờ blur(70px) đang chuyển động
+   + nền gradient động → GPU/trình duyệt làm rơi lớp vẽ. Ở đây: nền tĩnh, không blur nền, không backdrop-filter. */
+@media (max-width: 1020px), (pointer: coarse) {
+  .bg { animation: none !important; background-position: 50% 50%; }
+  .orb { animation: none !important; filter: none !important; opacity: 1 !important; background: radial-gradient(circle, rgba(139,92,246,.30), transparent 65%) !important; }
+  .glass, .gate, .dlg::backdrop, .sheet, .side { -webkit-backdrop-filter: none !important; backdrop-filter: none !important; }
+  .glass { background: linear-gradient(145deg, rgba(38,22,96,.82), rgba(18,9,56,.88)); }
+  .logo, .shimmer, .splash-logo { animation: none !important; }
+  .shimmer { background-position: 0 0 !important; }
+  .gate { background: rgba(4, 1, 20, .9); }
+  .btn.is-playing { animation: none; box-shadow: inset 0 1px 0 rgba(255,255,255,.5), 0 3px 0 #4c1d95, 0 0 22px rgba(34,211,238,.8); }
+}

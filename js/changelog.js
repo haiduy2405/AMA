@@ -4,6 +4,13 @@
   const MS = (globalThis.MS = globalThis.MS || {});
   MS.CHANGELOG = [
     {
+      v: '0.3.2', date: '14/11/2026', title: 'Sửa lỗi nháy / mất khung trên điện thoại',
+      items: [
+        'Trên điện thoại và máy bảng: nền tĩnh, bỏ kính mờ và quả cầu mờ chuyển động — nguyên nhân làm màn hình nháy, mất khung và chữ.',
+        'Máy tính vẫn giữ hiệu ứng đầy đủ.',
+      ],
+    },
+    {
       v: '0.3.1', date: '14/11/2026', title: 'Gọn hơn, có Hoàn tác / Làm lại',
       items: [
         'Nút ↶ Hoàn tác và ↷ Làm lại luôn hiện cạnh nút phát (màn Soạn và piano roll).',
