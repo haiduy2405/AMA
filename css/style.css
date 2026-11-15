@@ -803,3 +803,15 @@ body.phone.roll-full .rollbar .seg-b, body.phone.roll-full #btnVkb { min-width: 
   .toast.show { transform: translate(-50%, 0); }
 }
 body.roll-full .toast { top: max(10px, env(safe-area-inset-top)); bottom: auto; }
+
+
+/* ================= v0.4: nhập nốt từng bước — cao độ + độ dài cùng lúc, bấm "Tiếp ›" mới sang chữ kế ================= */
+.dk-lbl { font-size: 11px; color: var(--muted); align-self: center; padding-right: 2px; }
+.dk-act { align-items: center; }
+.dk-act .dc { min-width: 44px; height: 40px; }
+.dk-act .dc:disabled { opacity: .35; }
+.dk-go { margin-left: auto; min-width: 110px; height: 44px; font-size: 15px; flex: none; }
+.dc.on { box-shadow: 0 0 0 2px rgba(34,211,238,.35); }
+.tk .tk-d { position: absolute; left: 6px; bottom: 1px; height: 3px; max-width: calc(100% - 12px); border-radius: 3px; background: linear-gradient(90deg, var(--cyan), var(--violet)); opacity: .9; }
+.tk.rest::before { content: "⏸"; position: absolute; left: -6px; top: 22px; font-size: 9px; color: var(--gold); opacity: .9; }
+.tk small { margin-bottom: 4px; }

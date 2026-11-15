@@ -11,7 +11,7 @@
   let body, dock, root;
   let editing = null; // số ô đang gõ lời
   let pendingRender = false;
-  let auto = true; // chọn nốt xong tự nhảy sang chữ kế
+  let auto = false; try { auto = localStorage.getItem('ama-auto') === '1'; } catch (e) { /* ok */ } // mặc định: chọn xong 1 nốt rồi bấm “Tiếp” mới sang chữ kế
   let seventh = false;
   let lastLen = 2;
   let seed = 1;
@@ -72,10 +72,12 @@
         prevCh = ch || prevCh;
         const bad = note && toneBad(t.tone, notes[i - 1], note);
         const on = sel.bar === b && sel.i === i;
-        return '<button class="tk' + (on ? ' sel' : '') + (note ? '' : ' ghost') + (bad ? ' bad' : '') + '" data-bar="' + b + '" data-i="' + i + '"' + (bad ? ' title="Dấu ' + t.tone + ' nhưng nốt đi ngược chiều — nghe có thể lệch dấu"' : '') + '>' +
+        const restB = note && notes[i - 1] && note.start > notes[i - 1].start + notes[i - 1].dur;
+        return '<button class="tk' + (on ? ' sel' : '') + (note ? '' : ' ghost') + (bad ? ' bad' : '') + (restB ? ' rest' : '') + '" data-bar="' + b + '" data-i="' + i + '"' + (bad ? ' title="Dấu ' + t.tone + ' nhưng nốt đi ngược chiều — nghe có thể lệch dấu"' : '') + '>' +
           '<em class="tk-ch">' + (showCh ? T.chordName(ch, flats()) : '') + '</em>' +
           '<b>' + esc(t.text) + '</b><i class="tk-tone">' + TONE_GLYPH[t.tone] + '</i>' +
-          '<small>' + (note ? T.noteName(note.pitch, flats()) : '·') + '</small></button>';
+          '<small>' + (note ? T.noteName(note.pitch, flats()) : '·') + '</small>' +
+          (note ? '<i class="tk-d" style="width:' + Math.min(100, note.dur * 12.5) + '%" title="độ dài ' + note.dur + '/16 phách"></i>' : '') + '</button>';
       }).join('') + '</div>';
     }
     return '<section class="ln' + (sel.bar === b ? ' cur' : '') + '" data-bar="' + b + '"><header class="ln-head"><span class="ln-no">' + (b + 1) + '</span>' +
@@ -155,12 +157,16 @@
           const ct = pcs.includes(T.mod(p, 12));
           pitches += '<button class="pk' + (note && note.pitch === p ? ' on' : '') + (ct ? ' ct' : '') + (T.mod(d, 7) === 0 ? ' tn' : '') + '" data-act="pitch" data-p="' + p + '"><b>' + T.noteName(p, flats()) + '</b></button>';
         }
-        content += '<div class="dk-row dk-pitch" aria-label="Chọn nốt">' + pitches + '</div>';
-        if (note) {
-          const durs = [[1, '1/16'], [2, '1/8'], [3, '1/8.'], [4, '1/4'], [6, '1/4.'], [8, '1/2']];
-          content += '<div class="dk-row dk-dur" aria-label="Độ dài">' + durs.map(([v, l]) => '<button class="dc' + (note.dur === v ? ' on' : '') + '" data-act="dur" data-v="' + v + '">' + l + '</button>').join('') +
-            '<button class="dc" data-act="oct" data-v="1" aria-label="Lên quãng tám">8va ▲</button><button class="dc" data-act="oct" data-v="-1" aria-label="Xuống quãng tám">8va ▼</button><button class="dc del" data-act="delnote" aria-label="Xoá nốt">🗑</button></div>';
-        }
+        content += '<div class="dk-row dk-pitch" aria-label="Chọn cao độ">' + pitches + '</div>';
+        const cd = note ? note.dur : lastLen;
+        const durs = [[1, '1/16'], [2, '1/8'], [3, '1/8.'], [4, '1/4'], [6, '1/4.'], [8, '1/2'], [12, '1/2.'], [16, '1']];
+        content += '<div class="dk-row dk-dur" aria-label="Độ dài (nhịp)"><span class="dk-lbl">Dài</span>' + durs.map(([v, l]) => '<button class="dc' + (cd === v ? ' on' : '') + '" data-act="dur" data-v="' + v + '">' + l + '</button>').join('') + '</div>';
+        const prevEnd = sel.i ? (notes[sel.i - 1] ? notes[sel.i - 1].start + notes[sel.i - 1].dur : 0) : sel.bar * 16;
+        const hasRest = note && note.start > prevEnd;
+        content += '<div class="dk-row dk-act"><button class="dc" data-act="rest" aria-label="Nghỉ">' + (hasRest ? '⏸ Bỏ nghỉ' : '⏸ Nghỉ') + '</button>' +
+          '<button class="dc" data-act="oct" data-v="1" aria-label="Lên quãng tám"' + (note ? '' : ' disabled') + '>8va ▲</button><button class="dc" data-act="oct" data-v="-1" aria-label="Xuống quãng tám"' + (note ? '' : ' disabled') + '>8va ▼</button>' +
+          '<button class="dc del" data-act="delnote" aria-label="Xoá nốt"' + (note ? '' : ' disabled') + '>🗑</button>' +
+          '<button class="btn gold dk-go" data-act="next" aria-label="Xong nốt này, sang chữ kế">Tiếp ›</button></div>';
       } else content += '<button class="btn gold dk-next" data-act="' + ns.act + '">' + ns.label + '</button>';
     } else if (dockTab === 'chord') {
       content += '<div class="dk-row dk-chords" aria-label="Hợp âm">' + chordsRowHTML(step) + '</div>';
@@ -170,7 +176,8 @@
         '<button class="btn tiny" data-act="ai-regen">🎲 Làm lại</button>' +
         '<button class="btn tiny" data-act="ai-fill">✨ Nốt</button>' +
         '<button class="btn tiny" data-act="ai-chords">🎼 Hợp âm</button>' +
-        '<button class="btn tiny" data-act="retime">⚖ Chia nhịp</button></div>';
+        '<button class="btn tiny" data-act="retime">⚖ Chia nhịp</button>' +
+        '<label class="dk-auto"><input type="checkbox" id="stAuto"' + (auto ? ' checked' : '') + '><span>Tự nhảy sau mỗi nốt</span></label></div>';
     }
     const tab = (k, l) => '<button class="dk-tab' + (dockTab === k && dockOpen ? ' on' : '') + '" data-act="tab" data-k="' + k + '" role="tab" aria-selected="' + (dockTab === k) + '">' + l + '</button>';
     dock.classList.toggle('collapsed', !dockOpen);
@@ -225,21 +232,51 @@
       const rh = Gen.lineRhythm(Math.max(n, i + 1));
       for (let j = cur.length; j <= i; j++) {
         const prev = cur[j - 1];
-        let st = a + (rh[j] ? rh[j].start : 0);
-        if (prev) st = Math.max(st, prev.start + prev.dur);
+        let st = prev ? prev.start + prev.dur : a; // nối tiếp nốt trước
+        if (j < i && rh[j]) st = Math.max(st, a + rh[j].start); // chữ bị bỏ qua: tạm chia theo nhịp mẫu
         st = Math.min(st, b - 1);
-        const nn = { id: Store.uid(), start: st, dur: Math.max(1, Math.min(rh[j] ? rh[j].dur : lastLen, b - st)), pitch: j === i ? pitch : (prev ? prev.pitch : pitch), vel: 92 };
+        const want = j === i ? Math.max(1, Math.min(lastLen, (b - st) - Math.max(0, n - i - 1))) : (rh[j] ? rh[j].dur : lastLen);
+        const nn = { id: Store.uid(), start: st, dur: Math.max(1, Math.min(want, b - st)), pitch: j === i ? pitch : (prev ? prev.pitch : pitch), vel: 92 };
         s.notes.push(nn); cur.push(nn);
       }
       cur[i].pitch = pitch;
     }, 'studio');
   }
+  // đổi độ dài nốt i: các nốt phía sau trong ô dịch theo (giữ nguyên khoảng nghỉ giữa chúng) — chỉnh nhịp tự nhiên theo thứ tự nhập
   function setDur(bar, i, dur) {
-    const note = notesOf(bar)[i];
-    if (!note) return;
-    const d = Math.max(1, Math.min(dur, bar * 16 + 16 - note.start));
+    const notes = notesOf(bar), note = notes[i];
+    if (!note) { lastLen = dur; renderDock(); return; } // chưa có nốt: nhớ độ dài cho nốt sắp nhập
+    const barEnd = bar * 16 + 16, later = notes.slice(i + 1);
+    const d = Math.max(1, Math.min(dur, barEnd - note.start - later.length)); // chừa ≥1 phách cho mỗi nốt sau
+    if (d !== dur) toast('Chỉ còn chỗ cho ' + d + '/16 phách (ô chứa ' + later.length + ' nốt phía sau).');
     lastLen = d;
-    Store.commit((s) => { const x = s.notes.find((q) => q.id === note.id); if (x) x.dur = d; }, 'studio');
+    Store.commit((s) => {
+      const get = (id) => s.notes.find((q) => q.id === id);
+      const gaps = later.map((x, k) => x.start - (k ? later[k - 1].start + later[k - 1].dur : note.start + note.dur));
+      get(note.id).dur = d;
+      let cur = note.start + d;
+      later.forEach((x, k) => {
+        const nx = get(x.id), left = later.length - k - 1;
+        let g = Math.max(0, gaps[k]);
+        let st = cur + g;
+        if (st + nx.dur + left > barEnd) { g = 0; st = cur; }
+        if (st + nx.dur + left > barEnd) nx.dur = Math.max(1, barEnd - left - st);
+        nx.start = st; cur = st + nx.dur;
+      });
+    }, 'studio');
+  }
+  // thêm / bỏ khoảng nghỉ ngay trước nốt i
+  function toggleRest(bar, i) {
+    const notes = notesOf(bar), note = notes[i];
+    if (!note) { toast('Chọn nốt cho chữ này trước, rồi mới thêm quãng nghỉ phía trước nó.'); return; }
+    const prevEnd = i ? notes[i - 1].start + notes[i - 1].dur : bar * 16;
+    const gap = note.start - prevEnd, barEnd = bar * 16 + 16;
+    const lastN = notes[notes.length - 1], room = barEnd - (lastN.start + lastN.dur);
+    if (gap <= 0 && room < 1) { toast('Hết chỗ trong ô để chèn nghỉ — hãy rút ngắn bớt nốt.'); return; }
+    const delta = gap > 0 ? -gap : Math.max(1, Math.min(lastLen, 4, room));
+    const ids = new Set(notes.slice(i).map((x) => x.id));
+    Store.commit((s) => { s.notes.forEach((x) => { if (ids.has(x.id)) x.start += delta; }); }, 'studio');
+    toast(delta > 0 ? 'Đã chèn nghỉ ' + delta + '/16 phách trước nốt này.' : 'Đã bỏ khoảng nghỉ.');
   }
   function setChordAt(step, q) {
     const barEnd = Math.floor(step / 16) * 16 + 16;
@@ -438,6 +475,7 @@
       case 'ai-chords': aiChords(sel.bar); break;
       case 'ai-next': aiNext(); break;
       case 'retime': retime(sel.bar); break;
+      case 'rest': toggleRest(sel.bar, sel.i); break;
       case 'playhere': playHere(); break;
       case 'playall': Tr.play({ from: 0, to: Store.totalSteps() }); break;
       case 'tab': dockTab = t.dataset.k; dockOpen = true; saveDock(); renderDock(); break;
@@ -524,7 +562,7 @@
         setTimeout(() => { if (editing === bar && !(document.activeElement && document.activeElement.classList.contains('st-input'))) commitEdit(); }, 0);
       }
     });
-    dock.addEventListener('change', (e) => { if (e.target.id === 'stAuto') auto = e.target.checked; });
+    dock.addEventListener('change', (e) => { if (e.target.id === 'stAuto') { auto = e.target.checked; try { localStorage.setItem('ama-auto', auto ? '1' : '0'); } catch (err) { /* ok */ } } });
     $('stPlayAll').addEventListener('click', () => { if (Tr.playing) Tr.stop(); else Tr.play({ from: 0, to: Store.totalSteps() }); });
     Store.on((reason) => {
       if (reason === 'replace' || reason === 'undo') { sel.bar = Math.min(sel.bar, song().bars - 1); surgical = null; }

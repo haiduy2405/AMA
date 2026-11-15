@@ -4,6 +4,16 @@
   const MS = (globalThis.MS = globalThis.MS || {});
   MS.CHANGELOG = [
     {
+      v: '0.4.0', date: '15/11/2026', title: 'Nhập nốt từng bước, chỉnh nhịp ngay khi nhập',
+      items: [
+        'Chọn xong cao độ + độ dài của một chữ rồi bấm “Tiếp ›” mới sang chữ kế — không còn tự nhảy ngoài ý muốn (vẫn có thể bật “Tự nhảy” ở tab AI).',
+        'Cao độ và độ dài (1/16 → 1 ô) hiện cùng lúc; chọn độ dài trước khi nhập nốt cũng được.',
+        'Đổi độ dài một nốt thì các nốt sau tự dịch theo — nhịp chỉnh tự nhiên theo thứ tự hát.',
+        'Nút ⏸ Nghỉ chèn / bỏ quãng nghỉ trước nốt; mỗi chữ có thanh độ dài nhỏ để thấy nhịp ngay.',
+        'Nốt mới tự nối tiếp nốt trước và chừa chỗ cho các chữ còn lại trong ô.',
+      ],
+    },
+    {
       v: '0.3.3', date: '14/11/2026', title: 'Thông báo không che nút',
       items: [
         'Thông báo nổi chuyển lên phía trên, không còn che hàng chọn nốt / dock và không chặn cú chạm.',
